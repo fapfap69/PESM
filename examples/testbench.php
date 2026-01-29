@@ -23,15 +23,17 @@ $variables = $input['variables'] ?? [];
 
 try {
     $engine = new PESM\ScriptEngine();
+    
+    // Register custom function for demo
+    $engine->registerFunction('DEMO', function($args) {
+        return "Demo function called with: " . implode(', ', $args);
+    });
+    
     $result = $engine->execute($script, $variables);
     
-    echo json_encode([
-        'status' => 'success',
-        'message' => $result['message'] ?? null,
-        'variables' => $result['variables'] ?? [],
-        'action' => $result['action'] ?? 'continue',
+    echo json_encode(array_merge($result, [
         'log' => 'Execution completed successfully'
-    ]);
+    ]));
     
 } catch (Exception $e) {
     echo json_encode([
