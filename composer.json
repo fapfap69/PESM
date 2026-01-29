@@ -1,0 +1,34 @@
+{
+    "name": "infn/pesm",
+    "description": "PHP Embedded Scripts Manager - Standalone script engine for custom scripting language",
+    "type": "library",
+    "license": "MIT",
+    "version": "1.0.0",
+    "authors": [
+        {
+            "name": "Antonio Franco",
+            "email": "antonio.franco@ba.infn.it",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "PESM\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PESM\\Tests\\": "tests/"
+        }
+    },
+    "keywords": [
+        "script-engine",
+        "parser",
+        "runtime",
+        "embedded-language",
+        "workflow"
+    ]
+}
