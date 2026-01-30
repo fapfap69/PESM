@@ -89,7 +89,13 @@ Primary: val:FunctionCall | val:Number | val:Identifier | "(" _ val:Expression _
   }
 
 #node(FunctionCallNode)
-FunctionCall: fname:Identifier _ "(" _ args:( Expression ( _ "," _ Expression )* )? _ ")"
+FunctionCall: fname:Identifier _ "(" _ args:ArgumentList? _ ")"
+
+ArgumentList: arg:Expression ( _ "," _ arg:Expression )*
+  function arg(&$res, $sub) {
+    if (!isset($res['arguments'])) $res['arguments'] = [];
+    $res['arguments'][] = $sub;
+  }
 
 #node(LiteralNode)
 Number: /[0-9]+(\.[0-9]+)?/

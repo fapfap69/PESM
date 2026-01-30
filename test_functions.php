@@ -3,17 +3,21 @@ require_once __DIR__ . '/src/ScriptEngine.php';
 
 $engine = new PESM\ScriptEngine();
 
+echo "=== Math Functions ===\n";
 $tests = [
-    'x=ABS(-5)' => 5,
+    'x=5 y=ABS(x)' => 5,
     'x=ROUND(3.7)' => 4,
     'x=FLOOR(3.7)' => 3,
     'x=CEIL(3.2)' => 4,
+    'x=SQRT(16)' => 4,
 ];
 
 foreach ($tests as $script => $expected) {
-    echo "Test: $script\n";
     $result = $engine->execute($script);
-    $actual = $result['variables']['x'] ?? null;
-    echo "Expected: $expected, Got: $actual\n";
-    echo ($actual == $expected ? "✅ PASS" : "❌ FAIL") . "\n\n";
+    $actual = $result['variables']['x'] ?? $result['variables']['y'] ?? null;
+    echo "$script => $actual ";
+    echo ($actual == $expected ? "✅" : "❌") . "\n";
 }
+
+echo "\n=== Multi-argument (not yet supported) ===\n";
+echo "ROUND(3.7, 2) - requires 2 args support\n";

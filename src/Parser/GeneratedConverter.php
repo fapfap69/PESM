@@ -115,13 +115,9 @@ class GeneratedConverter
     {
         $nameNode = $this->convert($data['fname']);
         $args = [];
-        if (isset($data['args'])) {
-            // args can be single Expression or array
-            $argData = is_array($data['args']) && isset($data['args'][0]) ? $data['args'] : [$data['args']];
-            foreach ($argData as $arg) {
-                if (is_array($arg) && isset($arg['_matchrule'])) {
-                    $args[] = $this->convert($arg);
-                }
+        if (isset($data['args']['arguments'])) {
+            foreach ($data['args']['arguments'] as $arg) {
+                $args[] = $this->convert($arg);
             }
         }
         return new \PESM\Parser\AST\FunctionCallNode($nameNode->name, $args);

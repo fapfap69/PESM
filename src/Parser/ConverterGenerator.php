@@ -209,13 +209,9 @@ PHP;
         if ($rule === 'FunctionCall') {
             $code .= "        \$nameNode = \$this->convert(\$data['fname']);\n";
             $code .= "        \$args = [];\n";
-            $code .= "        if (isset(\$data['args'])) {\n";
-            $code .= "            // args can be single Expression or array\n";
-            $code .= "            \$argData = is_array(\$data['args']) && isset(\$data['args'][0]) ? \$data['args'] : [\$data['args']];\n";
-            $code .= "            foreach (\$argData as \$arg) {\n";
-            $code .= "                if (is_array(\$arg) && isset(\$arg['_matchrule'])) {\n";
-            $code .= "                    \$args[] = \$this->convert(\$arg);\n";
-            $code .= "                }\n";
+            $code .= "        if (isset(\$data['args']['arguments'])) {\n";
+            $code .= "            foreach (\$data['args']['arguments'] as \$arg) {\n";
+            $code .= "                \$args[] = \$this->convert(\$arg);\n";
             $code .= "            }\n";
             $code .= "        }\n";
             $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$nameNode->name, \$args);\n";
