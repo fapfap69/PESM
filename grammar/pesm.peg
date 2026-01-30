@@ -18,21 +18,67 @@ Statement: alt:Assignment _ | alt:IfStatement _ | alt:ForeachStatement _ | alt:M
 #node(AssignmentNode)
 Assignment: var:Identifier _ "=" _ expr:Expression
 
-Expression: val:Additive
+Expression: val:Logical
   function val(&$res, $sub) {
     $res['value'] = $sub;
   }
 
-Additive: val:Multiplicative ( _ AddOp _ Multiplicative )*
-  function val(&$res, $sub) {
-    $res['value'] = $sub;
+Logical: left:Comparison ( _ op:LogicalOp _ right:Comparison )*
+  function left(&$res, $sub) {
+    $res['left'] = $sub;
+  }
+  function op(&$res, $sub) {
+    if (!isset($res['ops'])) $res['ops'] = [];
+    $res['ops'][] = $sub;
+  }
+  function right(&$res, $sub) {
+    if (!isset($res['rights'])) $res['rights'] = [];
+    $res['rights'][] = $sub;
+  }
+
+LogicalOp: "AND" | "OR"
+
+Comparison: left:Additive ( _ op:CompOp _ right:Additive )*
+  function left(&$res, $sub) {
+    $res['left'] = $sub;
+  }
+  function op(&$res, $sub) {
+    if (!isset($res['ops'])) $res['ops'] = [];
+    $res['ops'][] = $sub;
+  }
+  function right(&$res, $sub) {
+    if (!isset($res['rights'])) $res['rights'] = [];
+    $res['rights'][] = $sub;
+  }
+
+CompOp: "==" | "!=" | ">=" | "<=" | ">" | "<"
+
+Additive: left:Multiplicative ( _ op:AddOp _ right:Multiplicative )*
+  function left(&$res, $sub) {
+    $res['left'] = $sub;
+  }
+  function op(&$res, $sub) {
+    if (!isset($res['ops'])) $res['ops'] = [];
+    $res['ops'][] = $sub;
+  }
+  function right(&$res, $sub) {
+    if (!isset($res['rights'])) $res['rights'] = [];
+    $res['rights'][] = $sub;
   }
 
 AddOp: "+" | "-"
 
-Multiplicative: val:Primary ( _ MulOp _ Primary )*
-  function val(&$res, $sub) {
-    $res['value'] = $sub;
+Multiplicative: left:Primary ( _ op:MulOp _ right:Primary )*
+  function left(&$res, $sub) {
+    $res['left'] = $sub;
+  }
+  function op(&$res, $sub) {
+    if (!isset($res['ops'])) $res['ops'] = [];
+    $res['ops'][] = $sub;
+  }
+  function right(&$res, $sub) {
+    if (!isset($res['rights'])) $res['rights'] = [];
+    $res['rights'][] = $sub;
   }
 
 MulOp: "*" | "/"
@@ -76,7 +122,10 @@ AcceptStmt: "ACCEPT" _ state:String
 RefuseStmt: "REFUSE" _ state:String
 
 #node(LiteralNode)
-String: '"' /[^"]+/ '"'
+String: '"' content:/[^"]{0,}/ '"'
+  function content(&$res, $sub) {
+    $res['value'] = $sub['text'];
+  }
 
 _: /[ \t\n\r]{0,}/
 

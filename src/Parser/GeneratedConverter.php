@@ -50,6 +50,28 @@ class GeneratedConverter
      */
     private function unwrap(array $data): \PESM\Parser\AST\Node
     {
+        $type = $data['_matchrule'] ?? '';
+        
+        // Special handling for binary operations
+        if (in_array($type, ['Additive', 'Multiplicative', 'Expression', 'Logical', 'Comparison'])) {
+            // If has ops, build BinaryOpNode
+            if (isset($data['ops']) && !empty($data['ops'])) {
+                $left = $this->convert($data['left']);
+                foreach ($data['ops'] as $i => $op) {
+                    $right = $this->convert($data['rights'][$i]);
+                    $left = new \PESM\Parser\AST\BinaryOpNode($left, $op['text'], $right);
+                }
+                return $left;
+            }
+            // No ops, unwrap to child
+            if (isset($data['left'])) {
+                return $this->convert($data['left']);
+            }
+            if (isset($data['value'])) {
+                return $this->convert($data['value']);
+            }
+        }
+        
         // Try to find first child node
         foreach ($data as $key => $value) {
             if ($key !== 'text' && $key !== '_matchrule' && $key !== 'name' && $key !== 'offset' && is_array($value)) {
@@ -151,8 +173,8 @@ class GeneratedConverter
      */
     private function convertString(array $data): \PESM\Parser\AST\LiteralNode
     {
-        $args = $this->extractArguments($data);
-        return new \PESM\Parser\AST\LiteralNode(...$args);
+        $value = $data['value'] ?? $data['text'];
+        return new \PESM\Parser\AST\LiteralNode($value);
     }
 
     /**

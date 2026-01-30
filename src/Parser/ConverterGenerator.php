@@ -97,6 +97,28 @@ PHP;
      */
     private function unwrap(array $data): \PESM\Parser\AST\Node
     {
+        $type = $data['_matchrule'] ?? '';
+        
+        // Special handling for binary operations
+        if (in_array($type, ['Additive', 'Multiplicative', 'Expression', 'Logical', 'Comparison'])) {
+            // If has ops, build BinaryOpNode
+            if (isset($data['ops']) && !empty($data['ops'])) {
+                $left = $this->convert($data['left']);
+                foreach ($data['ops'] as $i => $op) {
+                    $right = $this->convert($data['rights'][$i]);
+                    $left = new \PESM\Parser\AST\BinaryOpNode($left, $op['text'], $right);
+                }
+                return $left;
+            }
+            // No ops, unwrap to child
+            if (isset($data['left'])) {
+                return $this->convert($data['left']);
+            }
+            if (isset($data['value'])) {
+                return $this->convert($data['value']);
+            }
+        }
+        
         // Try to find first child node
         foreach ($data as $key => $value) {
             if ($key !== 'text' && $key !== '_matchrule' && $key !== 'name' && $key !== 'offset' && is_array($value)) {
@@ -130,6 +152,30 @@ PHP;
             $code .= "        \$exprNode = \$data['expr']['value'] ?? \$data['expr'];\n";
             $code .= "        \$exprNode = \$this->convert(\$exprNode);\n";
             $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$varNode->name, \$exprNode);\n";
+            $code .= "    }\n\n";
+            return $code;
+        }
+        
+        // Special case for String
+        if ($rule === 'String') {
+            $code .= "        \$value = \$data['value'] ?? \$data['text'];\n";
+            $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$value);\n";
+            $code .= "    }\n\n";
+            return $code;
+        }
+        
+        // Special case for binary operations (Additive, Multiplicative)
+        if (in_array($rule, ['Additive', 'Multiplicative'])) {
+            $code .= "        // Build binary operation tree\n";
+            $code .= "        \$left = \$this->convert(\$data['left']);\n";
+            $code .= "        if (!isset(\$data['ops']) || empty(\$data['ops'])) {\n";
+            $code .= "            return \$left; // No operation, just return left\n";
+            $code .= "        }\n";
+            $code .= "        foreach (\$data['ops'] as \$i => \$op) {\n";
+            $code .= "            \$right = \$this->convert(\$data['rights'][\$i]);\n";
+            $code .= "            \$left = new \\PESM\\Parser\\AST\\BinaryOpNode(\$left, \$op['text'], \$right);\n";
+            $code .= "        }\n";
+            $code .= "        return \$left;\n";
             $code .= "    }\n\n";
             return $code;
         }
