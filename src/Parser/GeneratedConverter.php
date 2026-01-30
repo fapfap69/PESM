@@ -128,8 +128,22 @@ class GeneratedConverter
      */
     private function convertIfStatement(array $data): \PESM\Parser\AST\IfNode
     {
-        $args = $this->extractArguments($data);
-        return new \PESM\Parser\AST\IfNode(...$args);
+        $cond = $this->convert($data['cond']['value'] ?? $data['cond']);
+        $thenBody = [];
+        if (isset($data['thenBody'])) {
+            foreach ($data['thenBody'] as $stmt) {
+                $node = isset($stmt['node']) ? $stmt['node'] : $stmt;
+                $thenBody[] = $this->convert($node);
+            }
+        }
+        $elseBody = [];
+        if (isset($data['elseBody'])) {
+            foreach ($data['elseBody'] as $stmt) {
+                $node = isset($stmt['node']) ? $stmt['node'] : $stmt;
+                $elseBody[] = $this->convert($node);
+            }
+        }
+        return new \PESM\Parser\AST\IfNode($cond, $thenBody, $elseBody);
     }
 
     /**

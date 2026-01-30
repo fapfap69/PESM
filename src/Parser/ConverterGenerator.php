@@ -164,6 +164,28 @@ PHP;
             return $code;
         }
         
+        // Special case for IfStatement
+        if ($rule === 'IfStatement') {
+            $code .= "        \$cond = \$this->convert(\$data['cond']['value'] ?? \$data['cond']);\n";
+            $code .= "        \$thenBody = [];\n";
+            $code .= "        if (isset(\$data['thenBody'])) {\n";
+            $code .= "            foreach (\$data['thenBody'] as \$stmt) {\n";
+            $code .= "                \$node = isset(\$stmt['node']) ? \$stmt['node'] : \$stmt;\n";
+            $code .= "                \$thenBody[] = \$this->convert(\$node);\n";
+            $code .= "            }\n";
+            $code .= "        }\n";
+            $code .= "        \$elseBody = [];\n";
+            $code .= "        if (isset(\$data['elseBody'])) {\n";
+            $code .= "            foreach (\$data['elseBody'] as \$stmt) {\n";
+            $code .= "                \$node = isset(\$stmt['node']) ? \$stmt['node'] : \$stmt;\n";
+            $code .= "                \$elseBody[] = \$this->convert(\$node);\n";
+            $code .= "            }\n";
+            $code .= "        }\n";
+            $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$cond, \$thenBody, \$elseBody);\n";
+            $code .= "    }\n\n";
+            return $code;
+        }
+        
         // Special case for binary operations (Additive, Multiplicative)
         if (in_array($rule, ['Additive', 'Multiplicative'])) {
             $code .= "        // Build binary operation tree\n";
