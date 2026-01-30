@@ -213,6 +213,14 @@ PHP;
             return $code;
         }
         
+        // Special case for Identifier (with lookahead)
+        if ($rule === 'Identifier') {
+            $code .= "        \$text = \$data['text'] ?? \$data[0]['text'] ?? '';\n";
+            $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$text);\n";
+            $code .= "    }\n\n";
+            return $code;
+        }
+        
         // Special case for IfStatement
         if ($rule === 'IfStatement') {
             $code .= "        \$cond = \$this->convert(\$data['cond']['value'] ?? \$data['cond']);\n";

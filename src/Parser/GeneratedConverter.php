@@ -200,7 +200,8 @@ class GeneratedConverter
      */
     private function convertIdentifier(array $data): \PESM\Parser\AST\VariableNode
     {
-        return new \PESM\Parser\AST\VariableNode($data['text']);
+        $text = $data['text'] ?? $data[0]['text'] ?? '';
+        return new \PESM\Parser\AST\VariableNode($text);
     }
 
     /**
