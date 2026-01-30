@@ -10,10 +10,26 @@ Program: _ stmt:Statement+
     $res['statements'][] = $sub;
   }
 
-Statement: alt:Assignment _ | alt:IfStatement _ | alt:ForeachStatement _ | alt:MessageStmt _ | alt:AcceptStmt _ | alt:RefuseStmt _
+Statement: alt:FunctionDef _ | alt:Assignment _ | alt:IfStatement _ | alt:ForeachStatement _ | alt:ReturnStmt _ | alt:MessageStmt _ | alt:AcceptStmt _ | alt:RefuseStmt _
   function alt(&$res, $sub) {
     $res['node'] = $sub;
   }
+
+#node(FunctionDefNode)
+FunctionDef: "FUNCTION" _ fname:Identifier _ "(" _ params:ParameterList? _ ")" _ body:Statement+ "END"
+  function body(&$res, $sub) {
+    if (!isset($res['funcBody'])) $res['funcBody'] = [];
+    $res['funcBody'][] = $sub;
+  }
+
+ParameterList: param:Identifier ( _ "," _ param:Identifier )*
+  function param(&$res, $sub) {
+    if (!isset($res['parameters'])) $res['parameters'] = [];
+    $res['parameters'][] = $sub;
+  }
+
+#node(ReturnNode)
+ReturnStmt: "RETURN" ( _ expr:Expression )?
 
 #node(AssignmentNode)
 Assignment: var:Identifier _ "=" _ expr:Expression

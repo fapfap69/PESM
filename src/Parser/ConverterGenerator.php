@@ -162,6 +162,39 @@ PHP;
         }
         $code .= "    {\n";
         
+        // Special case for FunctionDef
+        if ($rule === 'FunctionDef') {
+            $code .= "        \$nameNode = \$this->convert(\$data['fname']);\n";
+            $code .= "        \$params = [];\n";
+            $code .= "        if (isset(\$data['params']['parameters'])) {\n";
+            $code .= "            foreach (\$data['params']['parameters'] as \$param) {\n";
+            $code .= "                \$paramNode = \$this->convert(\$param);\n";
+            $code .= "                \$params[] = \$paramNode->name;\n";
+            $code .= "            }\n";
+            $code .= "        }\n";
+            $code .= "        \$body = [];\n";
+            $code .= "        if (isset(\$data['funcBody'])) {\n";
+            $code .= "            foreach (\$data['funcBody'] as \$stmt) {\n";
+            $code .= "                \$node = isset(\$stmt['node']) ? \$stmt['node'] : \$stmt;\n";
+            $code .= "                \$body[] = \$this->convert(\$node);\n";
+            $code .= "            }\n";
+            $code .= "        }\n";
+            $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$nameNode->name, \$params, \$body);\n";
+            $code .= "    }\n\n";
+            return $code;
+        }
+        
+        // Special case for ReturnStmt
+        if ($rule === 'ReturnStmt') {
+            $code .= "        \$expr = null;\n";
+            $code .= "        if (isset(\$data['expr'])) {\n";
+            $code .= "            \$expr = \$this->convert(\$data['expr']['value'] ?? \$data['expr']);\n";
+            $code .= "        }\n";
+            $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$expr);\n";
+            $code .= "    }\n\n";
+            return $code;
+        }
+        
         // Special case for Assignment
         if ($rule === 'Assignment') {
             $code .= "        \$varNode = \$this->convert(\$data['var']);\n";

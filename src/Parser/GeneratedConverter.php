@@ -8,6 +8,8 @@ namespace PESM\Parser;
 
 use PESM\Parser\AST\Node;
 use PESM\Parser\AST\ProgramNode;
+use PESM\Parser\AST\FunctionDefNode;
+use PESM\Parser\AST\ReturnNode;
 use PESM\Parser\AST\AssignmentNode;
 use PESM\Parser\AST\UnaryOpNode;
 use PESM\Parser\AST\FunctionCallNode;
@@ -106,6 +108,41 @@ class GeneratedConverter
             }
         }
         return new \PESM\Parser\AST\ProgramNode($items);
+    }
+
+    /**
+     * Convert FunctionDef to FunctionDefNode
+     */
+    private function convertFunctionDef(array $data): \PESM\Parser\AST\FunctionDefNode
+    {
+        $nameNode = $this->convert($data['fname']);
+        $params = [];
+        if (isset($data['params']['parameters'])) {
+            foreach ($data['params']['parameters'] as $param) {
+                $paramNode = $this->convert($param);
+                $params[] = $paramNode->name;
+            }
+        }
+        $body = [];
+        if (isset($data['funcBody'])) {
+            foreach ($data['funcBody'] as $stmt) {
+                $node = isset($stmt['node']) ? $stmt['node'] : $stmt;
+                $body[] = $this->convert($node);
+            }
+        }
+        return new \PESM\Parser\AST\FunctionDefNode($nameNode->name, $params, $body);
+    }
+
+    /**
+     * Convert ReturnStmt to ReturnNode
+     */
+    private function convertReturnStmt(array $data): \PESM\Parser\AST\ReturnNode
+    {
+        $expr = null;
+        if (isset($data['expr'])) {
+            $expr = $this->convert($data['expr']['value'] ?? $data['expr']);
+        }
+        return new \PESM\Parser\AST\ReturnNode($expr);
     }
 
     /**
