@@ -10,7 +10,7 @@ Program: _ stmt:Statement+
     $res['statements'][] = $sub;
   }
 
-Statement: alt:FunctionDef _ | alt:Assignment _ | alt:IfStatement _ | alt:ForeachStatement _ | alt:ReturnStmt _ | alt:MessageStmt _ | alt:AcceptStmt _ | alt:RefuseStmt _
+Statement: alt:FunctionDef _ | alt:IfStatement _ | alt:ForeachStatement _ | alt:MessageStmt _ | alt:AcceptStmt _ | alt:RefuseStmt _ | alt:ReturnStmt _ | alt:Assignment _
   function alt(&$res, $sub) {
     $res['node'] = $sub;
   }
@@ -29,7 +29,7 @@ ParameterList: param:Identifier ( _ "," _ param:Identifier )*
   }
 
 #node(ReturnNode)
-ReturnStmt: "RETURN" ( _ expr:Expression )?
+ReturnStmt: "RETURN" !(_ "=") ( _ expr:Expression )?
 
 #node(AssignmentNode)
 Assignment: var:Identifier _ "=" _ expr:Expression
@@ -128,7 +128,9 @@ ArgumentList: arg:Expression ( _ "," _ arg:Expression )*
 Number: /[0-9]+(\.[0-9]+)?/
 
 #node(VariableNode)
-Identifier: !("FUNCTION" | "RETURN" | "IF" | "ELSE" | "END" | "FOREACH" | "TO" | "MESSAGE" | "ACCEPT" | "REFUSE" | "AND" | "OR" | "NOT") /[a-zA-Z_][a-zA-Z0-9_]{0,}/
+Identifier: !Keyword /[a-zA-Z_][a-zA-Z0-9_]{0,}/
+
+Keyword: ("FUNCTION" | "RETURN" | "FOREACH" | "MESSAGE" | "ACCEPT" | "REFUSE" | "ELSE" | "AND" | "OR" | "NOT" | "END" | "IF" | "TO") !(/[a-zA-Z0-9_]/)
 
 #node(IfNode)
 IfStatement: "IF" _ cond:Expression _ body:Statement+ ( "ELSE" _ else:Statement+ )? "END"
