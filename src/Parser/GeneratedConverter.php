@@ -9,6 +9,7 @@ namespace PESM\Parser;
 use PESM\Parser\AST\Node;
 use PESM\Parser\AST\ProgramNode;
 use PESM\Parser\AST\AssignmentNode;
+use PESM\Parser\AST\FunctionCallNode;
 use PESM\Parser\AST\LiteralNode;
 use PESM\Parser\AST\VariableNode;
 use PESM\Parser\AST\IfNode;
@@ -105,6 +106,25 @@ class GeneratedConverter
         $exprNode = $data['expr']['value'] ?? $data['expr'];
         $exprNode = $this->convert($exprNode);
         return new \PESM\Parser\AST\AssignmentNode($varNode->name, $exprNode);
+    }
+
+    /**
+     * Convert FunctionCall to FunctionCallNode
+     */
+    private function convertFunctionCall(array $data): \PESM\Parser\AST\FunctionCallNode
+    {
+        $nameNode = $this->convert($data['fname']);
+        $args = [];
+        if (isset($data['args'])) {
+            // args can be single Expression or array
+            $argData = is_array($data['args']) && isset($data['args'][0]) ? $data['args'] : [$data['args']];
+            foreach ($argData as $arg) {
+                if (is_array($arg) && isset($arg['_matchrule'])) {
+                    $args[] = $this->convert($arg);
+                }
+            }
+        }
+        return new \PESM\Parser\AST\FunctionCallNode($nameNode->name, $args);
     }
 
     /**

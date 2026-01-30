@@ -83,10 +83,13 @@ Multiplicative: left:Primary ( _ op:MulOp _ right:Primary )*
 
 MulOp: "*" | "/"
 
-Primary: val:Number | val:Identifier | "(" _ val:Expression _ ")"
+Primary: val:FunctionCall | val:Number | val:Identifier | "(" _ val:Expression _ ")"
   function val(&$res, $sub) {
     $res['value'] = $sub;
   }
+
+#node(FunctionCallNode)
+FunctionCall: fname:Identifier _ "(" _ args:( Expression ( _ "," _ Expression )* )? _ ")"
 
 #node(LiteralNode)
 Number: /[0-9]+(\.[0-9]+)?/

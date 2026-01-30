@@ -211,8 +211,8 @@ class FunctionCallNode extends Node {
         }
         
         // Check built-in functions
-        if ($commands->hasFunction($this->name)) {
-            return $commands->executeFunction($this->name, $args, $context);
+        if ($commands->has($this->name)) {
+            return $commands->execute($this->name, $args, $context);
         }
         
         throw new \Exception("Function not found: {$this->name}");
