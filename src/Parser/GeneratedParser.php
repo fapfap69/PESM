@@ -710,7 +710,7 @@ function match_AddOp($stack = []) {
 }
 
 
-/* Multiplicative: left:Primary ( _ op:MulOp _ right:Primary )* */
+/* Multiplicative: left:Unary ( _ op:MulOp _ right:Unary )* */
 protected $match_Multiplicative_typestack = ['Multiplicative'];
 function match_Multiplicative($stack = []) {
 	$matchrule = 'Multiplicative';
@@ -718,7 +718,7 @@ function match_Multiplicative($stack = []) {
 	$result = $this->construct($matchrule, $matchrule);
 	$_116 = \null;
 	do {
-		$key = 'match_'.'Primary'; $pos = $this->pos;
+		$key = 'match_'.'Unary'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
@@ -751,7 +751,7 @@ function match_Multiplicative($stack = []) {
 					: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 				if ($subres !== \false) { $this->store($result, $subres); }
 				else { $_114 = \false; break; }
-				$key = 'match_'.'Primary'; $pos = $this->pos;
+				$key = 'match_'.'Unary'; $pos = $this->pos;
 				$subres = $this->packhas($key, $pos)
 					? $this->packread($key, $pos)
 					: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
@@ -822,304 +822,227 @@ function match_MulOp($stack = []) {
 }
 
 
-/* Primary: val:Number | val:Identifier | val:FunctionCall | val:UnaryExpr | "(" _ val:Expression _ ")" */
-protected $match_Primary_typestack = ['Primary'];
-function match_Primary($stack = []) {
-	$matchrule = 'Primary';
+/* Unary: op:UnaryOp _ expr:Unary | val:Primary */
+protected $match_Unary_typestack = ['Unary'];
+function match_Unary($stack = []) {
+	$matchrule = 'Unary';
 	$this->currentRule = $matchrule;
 	$result = $this->construct($matchrule, $matchrule);
-	$_144 = \null;
+	$_130 = \null;
 	do {
 		$res_123 = $result;
 		$pos_123 = $this->pos;
-		$key = 'match_'.'Number'; $pos = $this->pos;
+		$_127 = \null;
+		do {
+			$key = 'match_'.'UnaryOp'; $pos = $this->pos;
+			$subres = $this->packhas($key, $pos)
+				? $this->packread($key, $pos)
+				: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
+			if ($subres !== \false) {
+				$this->store($result, $subres, "op");
+			}
+			else { $_127 = \false; break; }
+			$key = 'match_'.'_'; $pos = $this->pos;
+			$subres = $this->packhas($key, $pos)
+				? $this->packread($key, $pos)
+				: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
+			if ($subres !== \false) { $this->store($result, $subres); }
+			else { $_127 = \false; break; }
+			$key = 'match_'.'Unary'; $pos = $this->pos;
+			$subres = $this->packhas($key, $pos)
+				? $this->packread($key, $pos)
+				: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
+			if ($subres !== \false) {
+				$this->store($result, $subres, "expr");
+			}
+			else { $_127 = \false; break; }
+			$_127 = \true; break;
+		}
+		while(\false);
+		if($_127 === \true) { $_130 = \true; break; }
+		$result = $res_123;
+		$this->setPos($pos_123);
+		$key = 'match_'.'Primary'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) {
 			$this->store($result, $subres, "val");
-			$_144 = \true; break;
+			$_130 = \true; break;
 		}
 		$result = $res_123;
 		$this->setPos($pos_123);
-		$_142 = \null;
-		do {
-			$res_125 = $result;
-			$pos_125 = $this->pos;
-			$key = 'match_'.'Identifier'; $pos = $this->pos;
-			$subres = $this->packhas($key, $pos)
-				? $this->packread($key, $pos)
-				: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
-			if ($subres !== \false) {
-				$this->store($result, $subres, "val");
-				$_142 = \true; break;
-			}
-			$result = $res_125;
-			$this->setPos($pos_125);
-			$_140 = \null;
-			do {
-				$res_127 = $result;
-				$pos_127 = $this->pos;
-				$key = 'match_'.'FunctionCall'; $pos = $this->pos;
-				$subres = $this->packhas($key, $pos)
-					? $this->packread($key, $pos)
-					: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
-				if ($subres !== \false) {
-					$this->store($result, $subres, "val");
-					$_140 = \true; break;
-				}
-				$result = $res_127;
-				$this->setPos($pos_127);
-				$_138 = \null;
-				do {
-					$res_129 = $result;
-					$pos_129 = $this->pos;
-					$key = 'match_'.'UnaryExpr'; $pos = $this->pos;
-					$subres = $this->packhas($key, $pos)
-						? $this->packread($key, $pos)
-						: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
-					if ($subres !== \false) {
-						$this->store($result, $subres, "val");
-						$_138 = \true; break;
-					}
-					$result = $res_129;
-					$this->setPos($pos_129);
-					$_136 = \null;
-					do {
-						if (\substr($this->string, $this->pos, 1) === '(') {
-							$this->addPos(1);
-							$result["text"] .= '(';
-						}
-						else { $_136 = \false; break; }
-						$key = 'match_'.'_'; $pos = $this->pos;
-						$subres = $this->packhas($key, $pos)
-							? $this->packread($key, $pos)
-							: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
-						if ($subres !== \false) { $this->store($result, $subres); }
-						else { $_136 = \false; break; }
-						$key = 'match_'.'Expression'; $pos = $this->pos;
-						$subres = $this->packhas($key, $pos)
-							? $this->packread($key, $pos)
-							: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
-						if ($subres !== \false) {
-							$this->store($result, $subres, "val");
-						}
-						else { $_136 = \false; break; }
-						$key = 'match_'.'_'; $pos = $this->pos;
-						$subres = $this->packhas($key, $pos)
-							? $this->packread($key, $pos)
-							: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
-						if ($subres !== \false) { $this->store($result, $subres); }
-						else { $_136 = \false; break; }
-						if (\substr($this->string, $this->pos, 1) === ')') {
-							$this->addPos(1);
-							$result["text"] .= ')';
-						}
-						else { $_136 = \false; break; }
-						$_136 = \true; break;
-					}
-					while(\false);
-					if($_136 === \true) { $_138 = \true; break; }
-					$result = $res_129;
-					$this->setPos($pos_129);
-					$_138 = \false; break;
-				}
-				while(\false);
-				if($_138 === \true) { $_140 = \true; break; }
-				$result = $res_127;
-				$this->setPos($pos_127);
-				$_140 = \false; break;
-			}
-			while(\false);
-			if($_140 === \true) { $_142 = \true; break; }
-			$result = $res_125;
-			$this->setPos($pos_125);
-			$_142 = \false; break;
-		}
-		while(\false);
-		if($_142 === \true) { $_144 = \true; break; }
-		$result = $res_123;
-		$this->setPos($pos_123);
-		$_144 = \false; break;
+		$_130 = \false; break;
 	}
 	while(\false);
-	if($_144 === \true) { return $this->finalise($result); }
-	if($_144 === \false) { return \false; }
+	if($_130 === \true) { return $this->finalise($result); }
+	if($_130 === \false) { return \false; }
 }
 
-public function Primary_val (&$res, $sub) {
-    $res['value'] = $sub;
+public function Unary_op (&$res, $sub) {
+    $res['operator'] = $sub['text'];
   }
 
-/* UnaryExpr: op:UnaryOp _ expr:( Number | Identifier | FunctionCall | "(" _ Expression _ ")" ) */
-protected $match_UnaryExpr_typestack = ['UnaryExpr'];
-function match_UnaryExpr($stack = []) {
-	$matchrule = 'UnaryExpr';
-	$this->currentRule = $matchrule;
-	$result = $this->construct($matchrule, $matchrule);
-	$_169 = \null;
-	do {
-		$key = 'match_'.'UnaryOp'; $pos = $this->pos;
-		$subres = $this->packhas($key, $pos)
-			? $this->packread($key, $pos)
-			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
-		if ($subres !== \false) {
-			$this->store($result, $subres, "op");
-		}
-		else { $_169 = \false; break; }
-		$key = 'match_'.'_'; $pos = $this->pos;
-		$subres = $this->packhas($key, $pos)
-			? $this->packread($key, $pos)
-			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
-		if ($subres !== \false) { $this->store($result, $subres); }
-		else { $_169 = \false; break; }
-		$stack[] = $result; $result = $this->construct($matchrule, "expr");
-		$_167 = \null;
-		do {
-			$_165 = \null;
-			do {
-				$res_148 = $result;
-				$pos_148 = $this->pos;
-				$key = 'match_'.'Number'; $pos = $this->pos;
-				$subres = $this->packhas($key, $pos)
-					? $this->packread($key, $pos)
-					: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
-				if ($subres !== \false) {
-					$this->store($result, $subres);
-					$_165 = \true; break;
-				}
-				$result = $res_148;
-				$this->setPos($pos_148);
-				$_163 = \null;
-				do {
-					$res_150 = $result;
-					$pos_150 = $this->pos;
-					$key = 'match_'.'Identifier'; $pos = $this->pos;
-					$subres = $this->packhas($key, $pos)
-						? $this->packread($key, $pos)
-						: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
-					if ($subres !== \false) {
-						$this->store($result, $subres);
-						$_163 = \true; break;
-					}
-					$result = $res_150;
-					$this->setPos($pos_150);
-					$_161 = \null;
-					do {
-						$res_152 = $result;
-						$pos_152 = $this->pos;
-						$key = 'match_'.'FunctionCall'; $pos = $this->pos;
-						$subres = $this->packhas($key, $pos)
-							? $this->packread($key, $pos)
-							: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
-						if ($subres !== \false) {
-							$this->store($result, $subres);
-							$_161 = \true; break;
-						}
-						$result = $res_152;
-						$this->setPos($pos_152);
-						$_159 = \null;
-						do {
-							if (\substr($this->string, $this->pos, 1) === '(') {
-								$this->addPos(1);
-								$result["text"] .= '(';
-							}
-							else { $_159 = \false; break; }
-							$key = 'match_'.'_'; $pos = $this->pos;
-							$subres = $this->packhas($key, $pos)
-								? $this->packread($key, $pos)
-								: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
-							if ($subres !== \false) { $this->store($result, $subres); }
-							else { $_159 = \false; break; }
-							$key = 'match_'.'Expression'; $pos = $this->pos;
-							$subres = $this->packhas($key, $pos)
-								? $this->packread($key, $pos)
-								: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
-							if ($subres !== \false) { $this->store($result, $subres); }
-							else { $_159 = \false; break; }
-							$key = 'match_'.'_'; $pos = $this->pos;
-							$subres = $this->packhas($key, $pos)
-								? $this->packread($key, $pos)
-								: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
-							if ($subres !== \false) { $this->store($result, $subres); }
-							else { $_159 = \false; break; }
-							if (\substr($this->string, $this->pos, 1) === ')') {
-								$this->addPos(1);
-								$result["text"] .= ')';
-							}
-							else { $_159 = \false; break; }
-							$_159 = \true; break;
-						}
-						while(\false);
-						if($_159 === \true) { $_161 = \true; break; }
-						$result = $res_152;
-						$this->setPos($pos_152);
-						$_161 = \false; break;
-					}
-					while(\false);
-					if($_161 === \true) { $_163 = \true; break; }
-					$result = $res_150;
-					$this->setPos($pos_150);
-					$_163 = \false; break;
-				}
-				while(\false);
-				if($_163 === \true) { $_165 = \true; break; }
-				$result = $res_148;
-				$this->setPos($pos_148);
-				$_165 = \false; break;
-			}
-			while(\false);
-			if($_165 === \false) { $_167 = \false; break; }
-			$_167 = \true; break;
-		}
-		while(\false);
-		if($_167 === \true) {
-			$subres = $result; $result = \array_pop($stack);
-			$this->store($result, $subres, 'expr');
-		}
-		if($_167 === \false) {
-			$result = \array_pop($stack);
-			$_169 = \false; break;
-		}
-		$_169 = \true; break;
-	}
-	while(\false);
-	if($_169 === \true) { return $this->finalise($result); }
-	if($_169 === \false) { return \false; }
-}
+public function Unary_val (&$res, $sub) {
+    $res['node'] = $sub;
+  }
 
-
-/* UnaryOp: "-" | "+" */
+/* UnaryOp: "NOT" | "-" | "+" */
 protected $match_UnaryOp_typestack = ['UnaryOp'];
 function match_UnaryOp($stack = []) {
 	$matchrule = 'UnaryOp';
 	$this->currentRule = $matchrule;
 	$result = $this->construct($matchrule, $matchrule);
-	$_174 = \null;
+	$_139 = \null;
 	do {
-		$res_171 = $result;
-		$pos_171 = $this->pos;
-		if (\substr($this->string, $this->pos, 1) === '-') {
-			$this->addPos(1);
-			$result["text"] .= '-';
-			$_174 = \true; break;
+		$res_132 = $result;
+		$pos_132 = $this->pos;
+		if (($subres = $this->literal('NOT')) !== \false) {
+			$result["text"] .= $subres;
+			$_139 = \true; break;
 		}
-		$result = $res_171;
-		$this->setPos($pos_171);
-		if (\substr($this->string, $this->pos, 1) === '+') {
-			$this->addPos(1);
-			$result["text"] .= '+';
-			$_174 = \true; break;
+		$result = $res_132;
+		$this->setPos($pos_132);
+		$_137 = \null;
+		do {
+			$res_134 = $result;
+			$pos_134 = $this->pos;
+			if (\substr($this->string, $this->pos, 1) === '-') {
+				$this->addPos(1);
+				$result["text"] .= '-';
+				$_137 = \true; break;
+			}
+			$result = $res_134;
+			$this->setPos($pos_134);
+			if (\substr($this->string, $this->pos, 1) === '+') {
+				$this->addPos(1);
+				$result["text"] .= '+';
+				$_137 = \true; break;
+			}
+			$result = $res_134;
+			$this->setPos($pos_134);
+			$_137 = \false; break;
 		}
-		$result = $res_171;
-		$this->setPos($pos_171);
-		$_174 = \false; break;
+		while(\false);
+		if($_137 === \true) { $_139 = \true; break; }
+		$result = $res_132;
+		$this->setPos($pos_132);
+		$_139 = \false; break;
 	}
 	while(\false);
-	if($_174 === \true) { return $this->finalise($result); }
-	if($_174 === \false) { return \false; }
+	if($_139 === \true) { return $this->finalise($result); }
+	if($_139 === \false) { return \false; }
 }
 
+
+/* Primary: val:FunctionCall | val:Number | val:Identifier | "(" _ val:Expression _ ")" */
+protected $match_Primary_typestack = ['Primary'];
+function match_Primary($stack = []) {
+	$matchrule = 'Primary';
+	$this->currentRule = $matchrule;
+	$result = $this->construct($matchrule, $matchrule);
+	$_158 = \null;
+	do {
+		$res_141 = $result;
+		$pos_141 = $this->pos;
+		$key = 'match_'.'FunctionCall'; $pos = $this->pos;
+		$subres = $this->packhas($key, $pos)
+			? $this->packread($key, $pos)
+			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
+		if ($subres !== \false) {
+			$this->store($result, $subres, "val");
+			$_158 = \true; break;
+		}
+		$result = $res_141;
+		$this->setPos($pos_141);
+		$_156 = \null;
+		do {
+			$res_143 = $result;
+			$pos_143 = $this->pos;
+			$key = 'match_'.'Number'; $pos = $this->pos;
+			$subres = $this->packhas($key, $pos)
+				? $this->packread($key, $pos)
+				: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
+			if ($subres !== \false) {
+				$this->store($result, $subres, "val");
+				$_156 = \true; break;
+			}
+			$result = $res_143;
+			$this->setPos($pos_143);
+			$_154 = \null;
+			do {
+				$res_145 = $result;
+				$pos_145 = $this->pos;
+				$key = 'match_'.'Identifier'; $pos = $this->pos;
+				$subres = $this->packhas($key, $pos)
+					? $this->packread($key, $pos)
+					: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
+				if ($subres !== \false) {
+					$this->store($result, $subres, "val");
+					$_154 = \true; break;
+				}
+				$result = $res_145;
+				$this->setPos($pos_145);
+				$_152 = \null;
+				do {
+					if (\substr($this->string, $this->pos, 1) === '(') {
+						$this->addPos(1);
+						$result["text"] .= '(';
+					}
+					else { $_152 = \false; break; }
+					$key = 'match_'.'_'; $pos = $this->pos;
+					$subres = $this->packhas($key, $pos)
+						? $this->packread($key, $pos)
+						: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
+					if ($subres !== \false) { $this->store($result, $subres); }
+					else { $_152 = \false; break; }
+					$key = 'match_'.'Expression'; $pos = $this->pos;
+					$subres = $this->packhas($key, $pos)
+						? $this->packread($key, $pos)
+						: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
+					if ($subres !== \false) {
+						$this->store($result, $subres, "val");
+					}
+					else { $_152 = \false; break; }
+					$key = 'match_'.'_'; $pos = $this->pos;
+					$subres = $this->packhas($key, $pos)
+						? $this->packread($key, $pos)
+						: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
+					if ($subres !== \false) { $this->store($result, $subres); }
+					else { $_152 = \false; break; }
+					if (\substr($this->string, $this->pos, 1) === ')') {
+						$this->addPos(1);
+						$result["text"] .= ')';
+					}
+					else { $_152 = \false; break; }
+					$_152 = \true; break;
+				}
+				while(\false);
+				if($_152 === \true) { $_154 = \true; break; }
+				$result = $res_145;
+				$this->setPos($pos_145);
+				$_154 = \false; break;
+			}
+			while(\false);
+			if($_154 === \true) { $_156 = \true; break; }
+			$result = $res_143;
+			$this->setPos($pos_143);
+			$_156 = \false; break;
+		}
+		while(\false);
+		if($_156 === \true) { $_158 = \true; break; }
+		$result = $res_141;
+		$this->setPos($pos_141);
+		$_158 = \false; break;
+	}
+	while(\false);
+	if($_158 === \true) { return $this->finalise($result); }
+	if($_158 === \false) { return \false; }
+}
+
+public function Primary_val (&$res, $sub) {
+    $res['value'] = $sub;
+  }
 
 /* FunctionCall: fname:Identifier _ "(" _ args:ArgumentList? _ ")" */
 protected $match_FunctionCall_typestack = ['FunctionCall'];
@@ -1127,7 +1050,7 @@ function match_FunctionCall($stack = []) {
 	$matchrule = 'FunctionCall';
 	$this->currentRule = $matchrule;
 	$result = $this->construct($matchrule, $matchrule);
-	$_183 = \null;
+	$_167 = \null;
 	do {
 		$key = 'match_'.'Identifier'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
@@ -1136,26 +1059,26 @@ function match_FunctionCall($stack = []) {
 		if ($subres !== \false) {
 			$this->store($result, $subres, "fname");
 		}
-		else { $_183 = \false; break; }
+		else { $_167 = \false; break; }
 		$key = 'match_'.'_'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) { $this->store($result, $subres); }
-		else { $_183 = \false; break; }
+		else { $_167 = \false; break; }
 		if (\substr($this->string, $this->pos, 1) === '(') {
 			$this->addPos(1);
 			$result["text"] .= '(';
 		}
-		else { $_183 = \false; break; }
+		else { $_167 = \false; break; }
 		$key = 'match_'.'_'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) { $this->store($result, $subres); }
-		else { $_183 = \false; break; }
-		$res_180 = $result;
-		$pos_180 = $this->pos;
+		else { $_167 = \false; break; }
+		$res_164 = $result;
+		$pos_164 = $this->pos;
 		$key = 'match_'.'ArgumentList'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
@@ -1164,26 +1087,26 @@ function match_FunctionCall($stack = []) {
 			$this->store($result, $subres, "args");
 		}
 		else {
-			$result = $res_180;
-			$this->setPos($pos_180);
-			unset($res_180, $pos_180);
+			$result = $res_164;
+			$this->setPos($pos_164);
+			unset($res_164, $pos_164);
 		}
 		$key = 'match_'.'_'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) { $this->store($result, $subres); }
-		else { $_183 = \false; break; }
+		else { $_167 = \false; break; }
 		if (\substr($this->string, $this->pos, 1) === ')') {
 			$this->addPos(1);
 			$result["text"] .= ')';
 		}
-		else { $_183 = \false; break; }
-		$_183 = \true; break;
+		else { $_167 = \false; break; }
+		$_167 = \true; break;
 	}
 	while(\false);
-	if($_183 === \true) { return $this->finalise($result); }
-	if($_183 === \false) { return \false; }
+	if($_167 === \true) { return $this->finalise($result); }
+	if($_167 === \false) { return \false; }
 }
 
 
@@ -1193,7 +1116,7 @@ function match_ArgumentList($stack = []) {
 	$matchrule = 'ArgumentList';
 	$this->currentRule = $matchrule;
 	$result = $this->construct($matchrule, $matchrule);
-	$_192 = \null;
+	$_176 = \null;
 	do {
 		$key = 'match_'.'Expression'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
@@ -1202,29 +1125,29 @@ function match_ArgumentList($stack = []) {
 		if ($subres !== \false) {
 			$this->store($result, $subres, "arg");
 		}
-		else { $_192 = \false; break; }
+		else { $_176 = \false; break; }
 		while (\true) {
-			$res_191 = $result;
-			$pos_191 = $this->pos;
-			$_190 = \null;
+			$res_175 = $result;
+			$pos_175 = $this->pos;
+			$_174 = \null;
 			do {
 				$key = 'match_'.'_'; $pos = $this->pos;
 				$subres = $this->packhas($key, $pos)
 					? $this->packread($key, $pos)
 					: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 				if ($subres !== \false) { $this->store($result, $subres); }
-				else { $_190 = \false; break; }
+				else { $_174 = \false; break; }
 				if (\substr($this->string, $this->pos, 1) === ',') {
 					$this->addPos(1);
 					$result["text"] .= ',';
 				}
-				else { $_190 = \false; break; }
+				else { $_174 = \false; break; }
 				$key = 'match_'.'_'; $pos = $this->pos;
 				$subres = $this->packhas($key, $pos)
 					? $this->packread($key, $pos)
 					: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 				if ($subres !== \false) { $this->store($result, $subres); }
-				else { $_190 = \false; break; }
+				else { $_174 = \false; break; }
 				$key = 'match_'.'Expression'; $pos = $this->pos;
 				$subres = $this->packhas($key, $pos)
 					? $this->packread($key, $pos)
@@ -1232,22 +1155,22 @@ function match_ArgumentList($stack = []) {
 				if ($subres !== \false) {
 					$this->store($result, $subres, "arg");
 				}
-				else { $_190 = \false; break; }
-				$_190 = \true; break;
+				else { $_174 = \false; break; }
+				$_174 = \true; break;
 			}
 			while(\false);
-			if($_190 === \false) {
-				$result = $res_191;
-				$this->setPos($pos_191);
-				unset($res_191, $pos_191);
+			if($_174 === \false) {
+				$result = $res_175;
+				$this->setPos($pos_175);
+				unset($res_175, $pos_175);
 				break;
 			}
 		}
-		$_192 = \true; break;
+		$_176 = \true; break;
 	}
 	while(\false);
-	if($_192 === \true) { return $this->finalise($result); }
-	if($_192 === \false) { return \false; }
+	if($_176 === \true) { return $this->finalise($result); }
+	if($_176 === \false) { return \false; }
 }
 
 public function ArgumentList_arg (&$res, $sub) {
@@ -1289,16 +1212,16 @@ function match_IfStatement($stack = []) {
 	$matchrule = 'IfStatement';
 	$this->currentRule = $matchrule;
 	$result = $this->construct($matchrule, $matchrule);
-	$_207 = \null;
+	$_191 = \null;
 	do {
 		if (($subres = $this->literal('IF')) !== \false) { $result["text"] .= $subres; }
-		else { $_207 = \false; break; }
+		else { $_191 = \false; break; }
 		$key = 'match_'.'_'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) { $this->store($result, $subres); }
-		else { $_207 = \false; break; }
+		else { $_191 = \false; break; }
 		$key = 'match_'.'Expression'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
@@ -1306,17 +1229,17 @@ function match_IfStatement($stack = []) {
 		if ($subres !== \false) {
 			$this->store($result, $subres, "cond");
 		}
-		else { $_207 = \false; break; }
+		else { $_191 = \false; break; }
 		$key = 'match_'.'_'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) { $this->store($result, $subres); }
-		else { $_207 = \false; break; }
-		$count_200 = 0;
+		else { $_191 = \false; break; }
+		$count_184 = 0;
 		while (\true) {
-			$res_200 = $result;
-			$pos_200 = $this->pos;
+			$res_184 = $result;
+			$pos_184 = $this->pos;
 			$key = 'match_'.'Statement'; $pos = $this->pos;
 			$subres = $this->packhas($key, $pos)
 				? $this->packread($key, $pos)
@@ -1325,31 +1248,31 @@ function match_IfStatement($stack = []) {
 				$this->store($result, $subres, "body");
 			}
 			else {
-				$result = $res_200;
-				$this->setPos($pos_200);
-				unset($res_200, $pos_200);
+				$result = $res_184;
+				$this->setPos($pos_184);
+				unset($res_184, $pos_184);
 				break;
 			}
-			$count_200++;
+			$count_184++;
 		}
-		if ($count_200 >= 1) {  }
-		else { $_207 = \false; break; }
-		$res_205 = $result;
-		$pos_205 = $this->pos;
-		$_204 = \null;
+		if ($count_184 >= 1) {  }
+		else { $_191 = \false; break; }
+		$res_189 = $result;
+		$pos_189 = $this->pos;
+		$_188 = \null;
 		do {
 			if (($subres = $this->literal('ELSE')) !== \false) { $result["text"] .= $subres; }
-			else { $_204 = \false; break; }
+			else { $_188 = \false; break; }
 			$key = 'match_'.'_'; $pos = $this->pos;
 			$subres = $this->packhas($key, $pos)
 				? $this->packread($key, $pos)
 				: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 			if ($subres !== \false) { $this->store($result, $subres); }
-			else { $_204 = \false; break; }
-			$count_203 = 0;
+			else { $_188 = \false; break; }
+			$count_187 = 0;
 			while (\true) {
-				$res_203 = $result;
-				$pos_203 = $this->pos;
+				$res_187 = $result;
+				$pos_187 = $this->pos;
 				$key = 'match_'.'Statement'; $pos = $this->pos;
 				$subres = $this->packhas($key, $pos)
 					? $this->packread($key, $pos)
@@ -1358,30 +1281,30 @@ function match_IfStatement($stack = []) {
 					$this->store($result, $subres, "else");
 				}
 				else {
-					$result = $res_203;
-					$this->setPos($pos_203);
-					unset($res_203, $pos_203);
+					$result = $res_187;
+					$this->setPos($pos_187);
+					unset($res_187, $pos_187);
 					break;
 				}
-				$count_203++;
+				$count_187++;
 			}
-			if ($count_203 >= 1) {  }
-			else { $_204 = \false; break; }
-			$_204 = \true; break;
+			if ($count_187 >= 1) {  }
+			else { $_188 = \false; break; }
+			$_188 = \true; break;
 		}
 		while(\false);
-		if($_204 === \false) {
-			$result = $res_205;
-			$this->setPos($pos_205);
-			unset($res_205, $pos_205);
+		if($_188 === \false) {
+			$result = $res_189;
+			$this->setPos($pos_189);
+			unset($res_189, $pos_189);
 		}
 		if (($subres = $this->literal('END')) !== \false) { $result["text"] .= $subres; }
-		else { $_207 = \false; break; }
-		$_207 = \true; break;
+		else { $_191 = \false; break; }
+		$_191 = \true; break;
 	}
 	while(\false);
-	if($_207 === \true) { return $this->finalise($result); }
-	if($_207 === \false) { return \false; }
+	if($_191 === \true) { return $this->finalise($result); }
+	if($_191 === \false) { return \false; }
 }
 
 public function IfStatement_body (&$res, $sub) {
@@ -1400,16 +1323,16 @@ function match_ForeachStatement($stack = []) {
 	$matchrule = 'ForeachStatement';
 	$this->currentRule = $matchrule;
 	$result = $this->construct($matchrule, $matchrule);
-	$_223 = \null;
+	$_207 = \null;
 	do {
 		if (($subres = $this->literal('FOREACH')) !== \false) { $result["text"] .= $subres; }
-		else { $_223 = \false; break; }
+		else { $_207 = \false; break; }
 		$key = 'match_'.'_'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) { $this->store($result, $subres); }
-		else { $_223 = \false; break; }
+		else { $_207 = \false; break; }
 		$key = 'match_'.'Identifier'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
@@ -1417,24 +1340,24 @@ function match_ForeachStatement($stack = []) {
 		if ($subres !== \false) {
 			$this->store($result, $subres, "var");
 		}
-		else { $_223 = \false; break; }
+		else { $_207 = \false; break; }
 		$key = 'match_'.'_'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) { $this->store($result, $subres); }
-		else { $_223 = \false; break; }
+		else { $_207 = \false; break; }
 		if (\substr($this->string, $this->pos, 1) === '=') {
 			$this->addPos(1);
 			$result["text"] .= '=';
 		}
-		else { $_223 = \false; break; }
+		else { $_207 = \false; break; }
 		$key = 'match_'.'_'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) { $this->store($result, $subres); }
-		else { $_223 = \false; break; }
+		else { $_207 = \false; break; }
 		$key = 'match_'.'Expression'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
@@ -1442,21 +1365,21 @@ function match_ForeachStatement($stack = []) {
 		if ($subres !== \false) {
 			$this->store($result, $subres, "from");
 		}
-		else { $_223 = \false; break; }
+		else { $_207 = \false; break; }
 		$key = 'match_'.'_'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) { $this->store($result, $subres); }
-		else { $_223 = \false; break; }
+		else { $_207 = \false; break; }
 		if (($subres = $this->literal('TO')) !== \false) { $result["text"] .= $subres; }
-		else { $_223 = \false; break; }
+		else { $_207 = \false; break; }
 		$key = 'match_'.'_'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) { $this->store($result, $subres); }
-		else { $_223 = \false; break; }
+		else { $_207 = \false; break; }
 		$key = 'match_'.'Expression'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
@@ -1464,17 +1387,17 @@ function match_ForeachStatement($stack = []) {
 		if ($subres !== \false) {
 			$this->store($result, $subres, "to");
 		}
-		else { $_223 = \false; break; }
+		else { $_207 = \false; break; }
 		$key = 'match_'.'_'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) { $this->store($result, $subres); }
-		else { $_223 = \false; break; }
-		$count_221 = 0;
+		else { $_207 = \false; break; }
+		$count_205 = 0;
 		while (\true) {
-			$res_221 = $result;
-			$pos_221 = $this->pos;
+			$res_205 = $result;
+			$pos_205 = $this->pos;
 			$key = 'match_'.'Statement'; $pos = $this->pos;
 			$subres = $this->packhas($key, $pos)
 				? $this->packread($key, $pos)
@@ -1483,22 +1406,22 @@ function match_ForeachStatement($stack = []) {
 				$this->store($result, $subres, "body");
 			}
 			else {
-				$result = $res_221;
-				$this->setPos($pos_221);
-				unset($res_221, $pos_221);
+				$result = $res_205;
+				$this->setPos($pos_205);
+				unset($res_205, $pos_205);
 				break;
 			}
-			$count_221++;
+			$count_205++;
 		}
-		if ($count_221 >= 1) {  }
-		else { $_223 = \false; break; }
+		if ($count_205 >= 1) {  }
+		else { $_207 = \false; break; }
 		if (($subres = $this->literal('END')) !== \false) { $result["text"] .= $subres; }
-		else { $_223 = \false; break; }
-		$_223 = \true; break;
+		else { $_207 = \false; break; }
+		$_207 = \true; break;
 	}
 	while(\false);
-	if($_223 === \true) { return $this->finalise($result); }
-	if($_223 === \false) { return \false; }
+	if($_207 === \true) { return $this->finalise($result); }
+	if($_207 === \false) { return \false; }
 }
 
 public function ForeachStatement_body (&$res, $sub) {
@@ -1512,16 +1435,16 @@ function match_MessageStmt($stack = []) {
 	$matchrule = 'MessageStmt';
 	$this->currentRule = $matchrule;
 	$result = $this->construct($matchrule, $matchrule);
-	$_228 = \null;
+	$_212 = \null;
 	do {
 		if (($subres = $this->literal('MESSAGE')) !== \false) { $result["text"] .= $subres; }
-		else { $_228 = \false; break; }
+		else { $_212 = \false; break; }
 		$key = 'match_'.'_'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) { $this->store($result, $subres); }
-		else { $_228 = \false; break; }
+		else { $_212 = \false; break; }
 		$key = 'match_'.'String'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
@@ -1529,12 +1452,12 @@ function match_MessageStmt($stack = []) {
 		if ($subres !== \false) {
 			$this->store($result, $subres, "msg");
 		}
-		else { $_228 = \false; break; }
-		$_228 = \true; break;
+		else { $_212 = \false; break; }
+		$_212 = \true; break;
 	}
 	while(\false);
-	if($_228 === \true) { return $this->finalise($result); }
-	if($_228 === \false) { return \false; }
+	if($_212 === \true) { return $this->finalise($result); }
+	if($_212 === \false) { return \false; }
 }
 
 
@@ -1544,16 +1467,16 @@ function match_AcceptStmt($stack = []) {
 	$matchrule = 'AcceptStmt';
 	$this->currentRule = $matchrule;
 	$result = $this->construct($matchrule, $matchrule);
-	$_233 = \null;
+	$_217 = \null;
 	do {
 		if (($subres = $this->literal('ACCEPT')) !== \false) { $result["text"] .= $subres; }
-		else { $_233 = \false; break; }
+		else { $_217 = \false; break; }
 		$key = 'match_'.'_'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) { $this->store($result, $subres); }
-		else { $_233 = \false; break; }
+		else { $_217 = \false; break; }
 		$key = 'match_'.'String'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
@@ -1561,12 +1484,12 @@ function match_AcceptStmt($stack = []) {
 		if ($subres !== \false) {
 			$this->store($result, $subres, "state");
 		}
-		else { $_233 = \false; break; }
-		$_233 = \true; break;
+		else { $_217 = \false; break; }
+		$_217 = \true; break;
 	}
 	while(\false);
-	if($_233 === \true) { return $this->finalise($result); }
-	if($_233 === \false) { return \false; }
+	if($_217 === \true) { return $this->finalise($result); }
+	if($_217 === \false) { return \false; }
 }
 
 
@@ -1576,16 +1499,16 @@ function match_RefuseStmt($stack = []) {
 	$matchrule = 'RefuseStmt';
 	$this->currentRule = $matchrule;
 	$result = $this->construct($matchrule, $matchrule);
-	$_238 = \null;
+	$_222 = \null;
 	do {
 		if (($subres = $this->literal('REFUSE')) !== \false) { $result["text"] .= $subres; }
-		else { $_238 = \false; break; }
+		else { $_222 = \false; break; }
 		$key = 'match_'.'_'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) { $this->store($result, $subres); }
-		else { $_238 = \false; break; }
+		else { $_222 = \false; break; }
 		$key = 'match_'.'String'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
@@ -1593,12 +1516,12 @@ function match_RefuseStmt($stack = []) {
 		if ($subres !== \false) {
 			$this->store($result, $subres, "state");
 		}
-		else { $_238 = \false; break; }
-		$_238 = \true; break;
+		else { $_222 = \false; break; }
+		$_222 = \true; break;
 	}
 	while(\false);
-	if($_238 === \true) { return $this->finalise($result); }
-	if($_238 === \false) { return \false; }
+	if($_222 === \true) { return $this->finalise($result); }
+	if($_222 === \false) { return \false; }
 }
 
 
@@ -1608,13 +1531,13 @@ function match_String($stack = []) {
 	$matchrule = 'String';
 	$this->currentRule = $matchrule;
 	$result = $this->construct($matchrule, $matchrule);
-	$_243 = \null;
+	$_227 = \null;
 	do {
 		if (\substr($this->string, $this->pos, 1) === '"') {
 			$this->addPos(1);
 			$result["text"] .= '"';
 		}
-		else { $_243 = \false; break; }
+		else { $_227 = \false; break; }
 		$stack[] = $result; $result = $this->construct($matchrule, "content");
 		if (($subres = $this->rx('/[^"]{0,}/')) !== \false) {
 			$result["text"] .= $subres;
@@ -1623,18 +1546,18 @@ function match_String($stack = []) {
 		}
 		else {
 			$result = \array_pop($stack);
-			$_243 = \false; break;
+			$_227 = \false; break;
 		}
 		if (\substr($this->string, $this->pos, 1) === '"') {
 			$this->addPos(1);
 			$result["text"] .= '"';
 		}
-		else { $_243 = \false; break; }
-		$_243 = \true; break;
+		else { $_227 = \false; break; }
+		$_227 = \true; break;
 	}
 	while(\false);
-	if($_243 === \true) { return $this->finalise($result); }
-	if($_243 === \false) { return \false; }
+	if($_227 === \true) { return $this->finalise($result); }
+	if($_227 === \false) { return \false; }
 }
 
 public function String_content (&$res, $sub) {

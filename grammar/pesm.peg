@@ -68,7 +68,7 @@ Additive: left:Multiplicative ( _ op:AddOp _ right:Multiplicative )*
 
 AddOp: "+" | "-"
 
-Multiplicative: left:Primary ( _ op:MulOp _ right:Primary )*
+Multiplicative: left:Unary ( _ op:MulOp _ right:Unary )*
   function left(&$res, $sub) {
     $res['left'] = $sub;
   }
@@ -83,15 +83,21 @@ Multiplicative: left:Primary ( _ op:MulOp _ right:Primary )*
 
 MulOp: "*" | "/"
 
-Primary: val:Number | val:Identifier | val:FunctionCall | val:UnaryExpr | "(" _ val:Expression _ ")"
+#node(UnaryOpNode)
+Unary: op:UnaryOp _ expr:Unary | val:Primary
+  function op(&$res, $sub) {
+    $res['operator'] = $sub['text'];
+  }
+  function val(&$res, $sub) {
+    $res['node'] = $sub;
+  }
+
+UnaryOp: "NOT" | "-" | "+"
+
+Primary: val:FunctionCall | val:Number | val:Identifier | "(" _ val:Expression _ ")"
   function val(&$res, $sub) {
     $res['value'] = $sub;
   }
-
-#node(UnaryOpNode)
-UnaryExpr: op:UnaryOp _ expr:( Number | Identifier | FunctionCall | "(" _ Expression _ ")" )
-
-UnaryOp: "-" | "+"
 
 #node(FunctionCallNode)
 FunctionCall: fname:Identifier _ "(" _ args:ArgumentList? _ ")"

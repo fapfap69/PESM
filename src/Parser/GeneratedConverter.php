@@ -74,6 +74,16 @@ class GeneratedConverter
             }
         }
         
+        // Special handling for Unary
+        if ($type === 'Unary') {
+            if (isset($data['operator']) && isset($data['expr'])) {
+                return new \PESM\Parser\AST\UnaryOpNode($data['operator'], $this->convert($data['expr']));
+            }
+            if (isset($data['node'])) {
+                return $this->convert($data['node']);
+            }
+        }
+        
         // Try to find first child node
         foreach ($data as $key => $value) {
             if ($key !== 'text' && $key !== '_matchrule' && $key !== 'name' && $key !== 'offset' && is_array($value)) {
@@ -110,13 +120,19 @@ class GeneratedConverter
     }
 
     /**
-     * Convert UnaryExpr to UnaryOpNode
+     * Convert Unary to UnaryOpNode
      */
-    private function convertUnaryExpr(array $data): \PESM\Parser\AST\UnaryOpNode
+    private function convertUnary(array $data): \PESM\Parser\AST\Node
     {
-        $op = $data['op']['text'];
-        $expr = $this->convert($data['expr']);
-        return new \PESM\Parser\AST\UnaryOpNode($op, $expr);
+        if (isset($data['operator']) && isset($data['expr'])) {
+            $op = $data['operator'];
+            $expr = $this->convert($data['expr']);
+            return new \PESM\Parser\AST\UnaryOpNode($op, $expr);
+        }
+        if (isset($data['node'])) {
+            return $this->convert($data['node']);
+        }
+        throw new \Exception('Invalid Unary node');
     }
 
     /**

@@ -94,21 +94,29 @@ class FunctionRegistry {
         return isset($this->functions[strtoupper($name)]);
     }
     
-    public function execute(string $name, array $args, $context) {
+    public function execute(string $name, array $args, $context = null) {
         $func = $this->functions[strtoupper($name)] ?? null;
         if (!$func) {
             throw new \Exception("Unknown function: $name");
         }
-        return $func($args, $context);
+        // Check if function accepts context parameter
+        $ref = new \ReflectionFunction($func);
+        $result = null;
+        if ($ref->getNumberOfParameters() > 1) {
+            $result = $func($args, $context);
+        } else {
+            $result = $func($args);
+        }
+        return $result;
     }
     
     private function registerBuiltins(): void {
         // Math
-        $this->register('ABS', fn($args) => abs($args[0]));
-        $this->register('SQRT', fn($args) => sqrt($args[0]));
-        $this->register('ROUND', fn($args) => round($args[0]));
-        $this->register('FLOOR', fn($args) => floor($args[0]));
-        $this->register('CEIL', fn($args) => ceil($args[0]));
+        $this->register('ABS', fn($args) => abs($args[0] ?? 0));
+        $this->register('SQRT', fn($args) => sqrt($args[0] ?? 0));
+        $this->register('ROUND', fn($args) => round($args[0] ?? 0));
+        $this->register('FLOOR', fn($args) => floor($args[0] ?? 0));
+        $this->register('CEIL', fn($args) => ceil($args[0] ?? 0));
         
         // String
         $this->register('UPPER', fn($args) => strtoupper($args[0]));

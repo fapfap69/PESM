@@ -340,6 +340,7 @@ class UnaryOpNode extends Node {
         return match($this->operator) {
             '-' => -$val,
             '+' => +$val,
+            'NOT' => !$val,
             default => throw new \Exception("Unknown unary operator: {$this->operator}")
         };
     }

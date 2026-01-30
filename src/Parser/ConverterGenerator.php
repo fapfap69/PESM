@@ -119,6 +119,16 @@ PHP;
             }
         }
         
+        // Special handling for Unary
+        if ($type === 'Unary') {
+            if (isset($data['operator']) && isset($data['expr'])) {
+                return new \PESM\Parser\AST\UnaryOpNode($data['operator'], $this->convert($data['expr']));
+            }
+            if (isset($data['node'])) {
+                return $this->convert($data['node']);
+            }
+        }
+        
         // Try to find first child node
         foreach ($data as $key => $value) {
             if ($key !== 'text' && $key !== '_matchrule' && $key !== 'name' && $key !== 'offset' && is_array($value)) {
@@ -143,7 +153,13 @@ PHP;
         $code = "    /**\n";
         $code .= "     * Convert $rule to $nodeClass\n";
         $code .= "     */\n";
-        $code .= "    private function convert{$rule}(array \$data): \\PESM\\Parser\\AST\\{$nodeClass}\n";
+        
+        // Special return type for Unary
+        if ($rule === 'Unary') {
+            $code .= "    private function convert{$rule}(array \$data): \\PESM\\Parser\\AST\\Node\n";
+        } else {
+            $code .= "    private function convert{$rule}(array \$data): \\PESM\\Parser\\AST\\{$nodeClass}\n";
+        }
         $code .= "    {\n";
         
         // Special case for Assignment
@@ -215,6 +231,21 @@ PHP;
             $code .= "            }\n";
             $code .= "        }\n";
             $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$nameNode->name, \$args);\n";
+            $code .= "    }\n\n";
+            return $code;
+        }
+        
+        // Special case for Unary
+        if ($rule === 'Unary') {
+            $code .= "        if (isset(\$data['operator']) && isset(\$data['expr'])) {\n";
+            $code .= "            \$op = \$data['operator'];\n";
+            $code .= "            \$expr = \$this->convert(\$data['expr']);\n";
+            $code .= "            return new \\PESM\\Parser\\AST\\{$nodeClass}(\$op, \$expr);\n";
+            $code .= "        }\n";
+            $code .= "        if (isset(\$data['node'])) {\n";
+            $code .= "            return \$this->convert(\$data['node']);\n";
+            $code .= "        }\n";
+            $code .= "        throw new \\Exception('Invalid Unary node');\n";
             $code .= "    }\n\n";
             return $code;
         }
