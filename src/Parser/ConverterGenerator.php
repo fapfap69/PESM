@@ -186,6 +186,34 @@ PHP;
             return $code;
         }
         
+        // Special case for ForeachStatement
+        if ($rule === 'ForeachStatement') {
+            $code .= "        \$varNode = \$this->convert(\$data['var']);\n";
+            $code .= "        \$from = \$this->convert(\$data['from']['value'] ?? \$data['from']);\n";
+            $code .= "        \$to = \$this->convert(\$data['to']['value'] ?? \$data['to']);\n";
+            $code .= "        \$body = [];\n";
+            $code .= "        if (isset(\$data['loopBody'])) {\n";
+            $code .= "            foreach (\$data['loopBody'] as \$stmt) {\n";
+            $code .= "                \$node = isset(\$stmt['node']) ? \$stmt['node'] : \$stmt;\n";
+            $code .= "                \$body[] = \$this->convert(\$node);\n";
+            $code .= "            }\n";
+            $code .= "        }\n";
+            $code .= "        // ForeachNode expects (var, iterable, body) but grammar has from/to\n";
+            $code .= "        // Create range array\n";
+            $code .= "        return new \\PESM\\Parser\\AST\\ForeachNode(\$varNode->name, new \\PESM\\Parser\\AST\\BinaryOpNode(\$from, 'range', \$to), \$body);\n";
+            $code .= "    }\n\n";
+            return $code;
+        }
+        
+        // Special case for MessageStmt/AcceptStmt/RefuseStmt
+        if (in_array($rule, ['MessageStmt', 'AcceptStmt', 'RefuseStmt'])) {
+            $key = $rule === 'MessageStmt' ? 'msg' : 'state';
+            $code .= "        \$arg = isset(\$data['$key']) ? \$this->convert(\$data['$key']) : null;\n";
+            $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$arg);\n";
+            $code .= "    }\n\n";
+            return $code;
+        }
+        
         // Special case for binary operations (Additive, Multiplicative)
         if (in_array($rule, ['Additive', 'Multiplicative'])) {
             $code .= "        // Build binary operation tree\n";

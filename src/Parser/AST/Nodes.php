@@ -70,6 +70,11 @@ class BinaryOpNode extends Node {
         $l = $this->left->execute($context, $flow, $commands);
         $r = $this->right->execute($context, $flow, $commands);
         
+        // Special case for range
+        if ($this->operator === 'range') {
+            return range($l, $r);
+        }
+        
         return match($this->operator) {
             '+' => $l + $r,
             '-' => $l - $r,

@@ -151,8 +151,19 @@ class GeneratedConverter
      */
     private function convertForeachStatement(array $data): \PESM\Parser\AST\ForeachNode
     {
-        $args = $this->extractArguments($data);
-        return new \PESM\Parser\AST\ForeachNode(...$args);
+        $varNode = $this->convert($data['var']);
+        $from = $this->convert($data['from']['value'] ?? $data['from']);
+        $to = $this->convert($data['to']['value'] ?? $data['to']);
+        $body = [];
+        if (isset($data['loopBody'])) {
+            foreach ($data['loopBody'] as $stmt) {
+                $node = isset($stmt['node']) ? $stmt['node'] : $stmt;
+                $body[] = $this->convert($node);
+            }
+        }
+        // ForeachNode expects (var, iterable, body) but grammar has from/to
+        // Create range array
+        return new \PESM\Parser\AST\ForeachNode($varNode->name, new \PESM\Parser\AST\BinaryOpNode($from, 'range', $to), $body);
     }
 
     /**
@@ -160,8 +171,8 @@ class GeneratedConverter
      */
     private function convertMessageStmt(array $data): \PESM\Parser\AST\MessageNode
     {
-        $args = $this->extractArguments($data);
-        return new \PESM\Parser\AST\MessageNode(...$args);
+        $arg = isset($data['msg']) ? $this->convert($data['msg']) : null;
+        return new \PESM\Parser\AST\MessageNode($arg);
     }
 
     /**
@@ -169,8 +180,8 @@ class GeneratedConverter
      */
     private function convertAcceptStmt(array $data): \PESM\Parser\AST\AcceptNode
     {
-        $args = $this->extractArguments($data);
-        return new \PESM\Parser\AST\AcceptNode(...$args);
+        $arg = isset($data['state']) ? $this->convert($data['state']) : null;
+        return new \PESM\Parser\AST\AcceptNode($arg);
     }
 
     /**
@@ -178,8 +189,8 @@ class GeneratedConverter
      */
     private function convertRefuseStmt(array $data): \PESM\Parser\AST\RefuseNode
     {
-        $args = $this->extractArguments($data);
-        return new \PESM\Parser\AST\RefuseNode(...$args);
+        $arg = isset($data['state']) ? $this->convert($data['state']) : null;
+        return new \PESM\Parser\AST\RefuseNode($arg);
     }
 
     /**
