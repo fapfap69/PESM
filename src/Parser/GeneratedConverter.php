@@ -9,6 +9,7 @@ namespace PESM\Parser;
 use PESM\Parser\AST\Node;
 use PESM\Parser\AST\ProgramNode;
 use PESM\Parser\AST\AssignmentNode;
+use PESM\Parser\AST\UnaryOpNode;
 use PESM\Parser\AST\FunctionCallNode;
 use PESM\Parser\AST\LiteralNode;
 use PESM\Parser\AST\VariableNode;
@@ -106,6 +107,16 @@ class GeneratedConverter
         $exprNode = $data['expr']['value'] ?? $data['expr'];
         $exprNode = $this->convert($exprNode);
         return new \PESM\Parser\AST\AssignmentNode($varNode->name, $exprNode);
+    }
+
+    /**
+     * Convert UnaryExpr to UnaryOpNode
+     */
+    private function convertUnaryExpr(array $data): \PESM\Parser\AST\UnaryOpNode
+    {
+        $op = $data['op']['text'];
+        $expr = $this->convert($data['expr']);
+        return new \PESM\Parser\AST\UnaryOpNode($op, $expr);
     }
 
     /**

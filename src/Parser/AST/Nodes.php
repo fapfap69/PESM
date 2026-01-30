@@ -324,3 +324,27 @@ class FunctionDefNode extends Node {
         return $this->body;
     }
 }
+
+// Unary Operation Node
+class UnaryOpNode extends Node {
+    public function __construct(
+        public string $operator,
+        public Node $operand
+    ) {
+        parent::__construct();
+    }
+    
+    public function execute($context, $flow, $commands) {
+        $val = $this->operand->execute($context, $flow, $commands);
+        
+        return match($this->operator) {
+            '-' => -$val,
+            '+' => +$val,
+            default => throw new \Exception("Unknown unary operator: {$this->operator}")
+        };
+    }
+    
+    public function getChildren(): array {
+        return [$this->operand];
+    }
+}

@@ -83,10 +83,15 @@ Multiplicative: left:Primary ( _ op:MulOp _ right:Primary )*
 
 MulOp: "*" | "/"
 
-Primary: val:FunctionCall | val:Number | val:Identifier | "(" _ val:Expression _ ")"
+Primary: val:Number | val:Identifier | val:FunctionCall | val:UnaryExpr | "(" _ val:Expression _ ")"
   function val(&$res, $sub) {
     $res['value'] = $sub;
   }
+
+#node(UnaryOpNode)
+UnaryExpr: op:UnaryOp _ expr:( Number | Identifier | FunctionCall | "(" _ Expression _ ")" )
+
+UnaryOp: "-" | "+"
 
 #node(FunctionCallNode)
 FunctionCall: fname:Identifier _ "(" _ args:ArgumentList? _ ")"
