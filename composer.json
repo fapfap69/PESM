@@ -14,16 +14,17 @@
     "require": {
         "php": ">=8.0"
     },
+    "require-dev": {
+        "smuuf/php-peg": "^3.1"
+    },
     "autoload": {
         "psr-4": {
             "PESM\\": "src/"
         }
     },
-    "autoload-dev": {
-        "psr-4": {
-            "PESM\\Tests\\": "tests/"
-        }
-    },
+    "bin": [
+        "bin/build-parser.php"
+    ],
     "keywords": [
         "script-engine",
         "parser",

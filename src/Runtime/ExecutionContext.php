@@ -27,11 +27,8 @@ class ExecutionContext {
     }
     
     public function set(string $name, $value): void {
-        if (!empty($this->scopeStack)) {
-            $this->scopeStack[count($this->scopeStack) - 1][$name] = $value;
-        } else {
-            $this->variables[$name] = $value;
-        }
+        // Always set in main variables, not scope
+        $this->variables[$name] = $value;
     }
     
     public function getAll(): array {

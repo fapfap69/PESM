@@ -13,10 +13,11 @@ require_once __DIR__ . '/Runtime/Interpreter.php';
 require_once __DIR__ . '/Parser/AST/Node.php';
 require_once __DIR__ . '/Parser/AST/ProgramNode.php';
 require_once __DIR__ . '/Parser/AST/Nodes.php';
+require_once __DIR__ . '/Parser/AST/AdditionalNodes.php';
 
 class ScriptEngine {
     private Runtime\Interpreter $interpreter;
-    private array $astCache = [];
+    private $parser = null;
     
     public function __construct() {
         $this->interpreter = new Runtime\Interpreter();
@@ -30,12 +31,14 @@ class ScriptEngine {
      * @return array Execution result with status, variables, message
      */
     public function execute(string $script, array $variables = []): array {
-        // TODO: Parse script to AST
-        // For now, return placeholder
+        $oldLevel = error_reporting(E_ERROR | E_PARSE);
+        
+        // Parse script to AST using generated parser
         $ast = $this->parse($script);
         
         $result = $this->interpreter->execute($ast, $variables);
         
+        error_reporting($oldLevel);
         return $result->toArray();
     }
     
@@ -77,29 +80,44 @@ class ScriptEngine {
     }
     
     /**
-     * Parse script to AST (placeholder - needs real parser)
+     * Parse script to AST using generated parser
      * 
      * @param string $script
      * @return Parser\AST\Node
      */
     private function parse(string $script): Parser\AST\Node {
-        // TODO: Implement real parser
-        // For now, create simple test AST
+        // Load generated parser and converter
+        if (!$this->parser) {
+            $parserFile = __DIR__ . '/Parser/GeneratedParser.php';
+            $converterFile = __DIR__ . '/Parser/GeneratedConverter.php';
+            
+            if (!file_exists($parserFile)) {
+                throw new \Exception(
+                    "Parser not generated. Run: php bin/build-parser.php"
+                );
+            }
+            if (!file_exists($converterFile)) {
+                throw new \Exception(
+                    "Converter not generated. Run: php bin/build-parser.php"
+                );
+            }
+            
+            require_once __DIR__ . '/../vendor/autoload.php';
+            require_once $parserFile;
+            require_once $converterFile;
+        }
         
-        // Example: x = 5; MESSAGE "Hello"
-        return new Parser\AST\ProgramNode([
-            new Parser\AST\AssignmentNode(
-                'x',
-                new Parser\AST\LiteralNode(5)
-            ),
-            new Parser\AST\MessageNode(
-                new Parser\AST\LiteralNode("Hello from PESM!")
-            )
-        ]);
-    }
-    
-    private function getCachedAST(): Parser\AST\Node {
-        // TODO: Implement AST caching
-        throw new \Exception("No cached AST available");
+        $parser = new \PESM\Parser\GeneratedParser($script);
+        
+        // Parse to array
+        $result = $parser->match_Program();
+        
+        if ($result === false) {
+            throw new \Exception("Parse error in script");
+        }
+        
+        // Convert array to AST
+        $converter = new \PESM\Parser\GeneratedConverter();
+        return $converter->convert($result);
     }
 }

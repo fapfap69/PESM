@@ -1,0 +1,11 @@
+/*!* PEGParser
+
+TestRule: items:Item+
+  function items(&$res, $sub) {
+    if (!isset($res['normalized'])) $res['normalized'] = [];
+    $res['normalized'][] = $sub;
+  }
+
+Item: /[a-z]+/
+
+*/
