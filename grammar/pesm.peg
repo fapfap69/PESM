@@ -10,7 +10,7 @@ Program: _ stmt:Statement+
     $res['statements'][] = $sub;
   }
 
-Statement: alt:FunctionDef _ | alt:IfStatement _ | alt:WhileStatement _ | alt:ForeachStatement _ | alt:MessageStmt _ | alt:AcceptStmt _ | alt:RefuseStmt _ | alt:ReturnStmt _ | alt:Assignment _
+Statement: alt:FunctionDef _ | alt:IfStatement _ | alt:WhileStatement _ | alt:ForeachStatement _ | alt:MessageStmt _ | alt:AcceptStmt _ | alt:RefuseStmt _ | alt:ReturnStmt _ | alt:LabelStmt _ | alt:GotoStmt _ | alt:Assignment _
   function alt(&$res, $sub) {
     $res['node'] = $sub;
   }
@@ -155,7 +155,7 @@ Number: /[0-9]+(\.[0-9]+)?/
 #node(VariableNode)
 Identifier: !Keyword /[a-zA-Z_][a-zA-Z0-9_]{0,}/
 
-Keyword: ("BEGIN" | "WHILE" | "FUNCTION" | "RETURN" | "FOREACH" | "MESSAGE" | "ACCEPT" | "REFUSE" | "ELSE" | "AND" | "OR" | "NOT" | "END" | "IF" | "TO") !(/[a-zA-Z0-9_]/)
+Keyword: ("GOTO" | "BEGIN" | "WHILE" | "FUNCTION" | "RETURN" | "FOREACH" | "MESSAGE" | "ACCEPT" | "REFUSE" | "ELSE" | "AND" | "OR" | "NOT" | "END" | "IF" | "TO") !(/[a-zA-Z0-9_]/)
 
 #node(BlockNode)
 Block: "{" _ stmts:Statement* _ "}" | "BEGIN" _ stmts:Statement* _ "END"
@@ -165,7 +165,7 @@ Block: "{" _ stmts:Statement* _ "}" | "BEGIN" _ stmts:Statement* _ "END"
   }
 
 #node(IfNode)
-IfStatement: "IF" _ cond:Expression _ body:Block ( _ "ELSE" _ else:Block )? | "IF" _ cond:Expression _ body:Statement+ ( _ "ELSE" _ else:Statement+ )? ( _ "END" )
+IfStatement: "IF" _ cond:Expression _ body:Block ( _ "ELSE" _ else:Block )? | "IF" _ cond:Expression _ body:Statement+ ( _ "ELSE" _ else:Statement+ )? ( _ "END" ) | "IF" _ cond:Expression _ stmt:Statement
   function body(&$res, $sub) {
     if (!isset($res['thenBody'])) $res['thenBody'] = [];
     $res['thenBody'][] = $sub;
@@ -173,6 +173,10 @@ IfStatement: "IF" _ cond:Expression _ body:Block ( _ "ELSE" _ else:Block )? | "I
   function else(&$res, $sub) {
     if (!isset($res['elseBody'])) $res['elseBody'] = [];
     $res['elseBody'][] = $sub;
+  }
+  function stmt(&$res, $sub) {
+    if (!isset($res['thenBody'])) $res['thenBody'] = [];
+    $res['thenBody'][] = $sub;
   }
 
 #node(ForeachNode)
@@ -197,6 +201,12 @@ AcceptStmt: "ACCEPT" _ state:Expression
 
 #node(InterruptNode)
 RefuseStmt: "REFUSE" _ state:Expression
+
+#node(LabelNode)
+LabelStmt: label:Identifier _ ":"
+
+#node(GotoNode)
+GotoStmt: "GOTO" _ label:Identifier
 
 _: /[ \t\n\r]{0,}/
 

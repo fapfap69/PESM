@@ -22,6 +22,8 @@ use PESM\Parser\AST\IfNode;
 use PESM\Parser\AST\ForeachNode;
 use PESM\Parser\AST\WhileNode;
 use PESM\Parser\AST\InterruptNode;
+use PESM\Parser\AST\LabelNode;
+use PESM\Parser\AST\GotoNode;
 
 class GeneratedConverter
 {
@@ -371,6 +373,24 @@ class GeneratedConverter
     {
         $arg = isset($data['state']) ? $this->convert($data['state']['value'] ?? $data['state']) : null;
         return new \PESM\Parser\AST\InterruptNode('refuse', $arg);
+    }
+
+    /**
+     * Convert LabelStmt to LabelNode
+     */
+    private function convertLabelStmt(array $data): \PESM\Parser\AST\LabelNode
+    {
+        $labelNode = $this->convert($data['label']);
+        return new \PESM\Parser\AST\LabelNode($labelNode->name);
+    }
+
+    /**
+     * Convert GotoStmt to GotoNode
+     */
+    private function convertGotoStmt(array $data): \PESM\Parser\AST\GotoNode
+    {
+        $labelNode = $this->convert($data['label']);
+        return new \PESM\Parser\AST\GotoNode($labelNode->name);
     }
 
     /**

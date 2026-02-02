@@ -160,7 +160,7 @@ class BlockNode extends Node {
             if ($pc) $pc->setCurrentNode($stmt->id);
             
             $stmt->execute($context, $flow, $commands, $pc);
-            if ($flow->hasReturnValue() || $flow->getAction() || $flow->needsInterrupt()) {
+            if ($flow->hasReturnValue() || $flow->getAction() || $flow->needsInterrupt() || $flow->hasGoto()) {
                 break;
             }
         }
@@ -168,6 +168,32 @@ class BlockNode extends Node {
     
     public function getChildren(): array {
         return $this->statements;
+    }
+}
+
+// Label Node - Marks a position in code
+class LabelNode extends Node {
+    public function __construct(
+        public string $name
+    ) {
+        parent::__construct();
+    }
+    
+    public function execute($context, $flow, $commands, $pc = null) {
+        // Labels don't execute, they just mark positions
+    }
+}
+
+// Goto Node - Jumps to a label
+class GotoNode extends Node {
+    public function __construct(
+        public string $label
+    ) {
+        parent::__construct();
+    }
+    
+    public function execute($context, $flow, $commands, $pc = null) {
+        $flow->setGoto($this->label);
     }
 }
 
@@ -195,7 +221,7 @@ class IfNode extends Node {
             if ($pc) $pc->setCurrentNode($stmt->id);
             
             $stmt->execute($context, $flow, $commands, $pc);
-            if ($flow->hasReturnValue() || $flow->getAction() || $flow->needsInterrupt()) {
+            if ($flow->hasReturnValue() || $flow->getAction() || $flow->needsInterrupt() || $flow->hasGoto()) {
                 break;
             }
         }
@@ -244,6 +270,9 @@ class ForeachNode extends Node {
                     $flow->reset();
                     break;
                 }
+                if ($flow->hasGoto()) {
+                    return;
+                }
                 if ($flow->hasReturnValue() || $flow->getAction() || $flow->needsInterrupt()) {
                     return;
                 }
@@ -289,6 +318,9 @@ class WhileNode extends Node {
                 if ($flow->shouldContinue()) {
                     $flow->reset();
                     break;
+                }
+                if ($flow->hasGoto()) {
+                    return;
                 }
                 if ($flow->hasReturnValue() || $flow->getAction() || $flow->needsInterrupt()) {
                     return;

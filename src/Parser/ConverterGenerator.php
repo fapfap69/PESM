@@ -394,6 +394,22 @@ PHP;
             return $code;
         }
         
+        // Special case for LabelStmt
+        if ($rule === 'LabelStmt') {
+            $code .= "        \$labelNode = \$this->convert(\$data['label']);\n";
+            $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$labelNode->name);\n";
+            $code .= "    }\n\n";
+            return $code;
+        }
+        
+        // Special case for GotoStmt
+        if ($rule === 'GotoStmt') {
+            $code .= "        \$labelNode = \$this->convert(\$data['label']);\n";
+            $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$labelNode->name);\n";
+            $code .= "    }\n\n";
+            return $code;
+        }
+        
         // Special case for Postfix in unwrap
         if ($type === 'Postfix') {
             if (isset($data['indices']) && !empty($data['indices'])) {

@@ -17,6 +17,7 @@ class ControlFlow {
     private bool $interrupt = false;
     private ?string $interruptType = null;
     private int $resumeIndex = 0;
+    private ?string $gotoLabel = null;
     
     public function setBreak(): void { $this->shouldBreak = true; }
     public function setContinue(): void { $this->shouldContinue = true; }
@@ -54,6 +55,11 @@ class ControlFlow {
     
     public function setResumeIndex(int $index): void { $this->resumeIndex = $index; }
     public function getResumeIndex(): int { return $this->resumeIndex; }
+    
+    public function setGoto(string $label): void { $this->gotoLabel = $label; }
+    public function hasGoto(): bool { return $this->gotoLabel !== null; }
+    public function getGotoLabel(): ?string { return $this->gotoLabel; }
+    public function clearGoto(): void { $this->gotoLabel = null; }
     
     public function reset(): void {
         $this->shouldBreak = false;

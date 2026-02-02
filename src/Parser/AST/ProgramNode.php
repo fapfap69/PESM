@@ -17,9 +17,27 @@ class ProgramNode extends Node {
     }
     
     public function execute($context, $flow, $commands, $pc = null) {
-        foreach ($this->statements as $stmt) {
+        // Build label map on first execution
+        $labels = [];
+        foreach ($this->statements as $i => $stmt) {
+            if ($stmt instanceof LabelNode) {
+                $labels[$stmt->name] = $i;
+            }
+        }
+        
+        $i = 0;
+        $iterations = 0;
+        while ($i < count($this->statements)) {
+            $iterations++;
+            if ($iterations > 10000) {
+                throw new \Exception("Infinite loop detected (>10000 iterations)");
+            }
+            
+            $stmt = $this->statements[$i];
+            
             // Skip se in resume mode
             if ($pc && $pc->shouldSkip($stmt->id)) {
+                $i++;
                 continue;
             }
             
@@ -27,10 +45,25 @@ class ProgramNode extends Node {
             
             $stmt->execute($context, $flow, $commands, $pc);
             
+            // Handle GOTO
+            if ($flow->hasGoto()) {
+                $label = $flow->getGotoLabel();
+                $flow->clearGoto();
+                
+                if (!isset($labels[$label])) {
+                    throw new \Exception("Undefined label: $label");
+                }
+                
+                $i = $labels[$label];
+                continue;
+            }
+            
             // Check for early termination
             if ($flow->hasReturnValue() || $flow->getAction() || $flow->needsInterrupt()) {
                 break;
             }
+            
+            $i++;
         }
         
         return null;
