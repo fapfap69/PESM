@@ -2060,7 +2060,7 @@ public function ForeachStatement_body (&$res, $sub) {
     $res['loopBody'][] = $sub;
   }
 
-/* MessageStmt: "MESSAGE" _ msg:String */
+/* MessageStmt: "MESSAGE" _ msg:Expression */
 protected $match_MessageStmt_typestack = ['MessageStmt'];
 function match_MessageStmt($stack = []) {
 	$matchrule = 'MessageStmt';
@@ -2076,7 +2076,7 @@ function match_MessageStmt($stack = []) {
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) { $this->store($result, $subres); }
 		else { $_328 = \false; break; }
-		$key = 'match_'.'String'; $pos = $this->pos;
+		$key = 'match_'.'Expression'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
@@ -2092,7 +2092,7 @@ function match_MessageStmt($stack = []) {
 }
 
 
-/* AcceptStmt: "ACCEPT" _ state:String */
+/* AcceptStmt: "ACCEPT" _ state:Expression */
 protected $match_AcceptStmt_typestack = ['AcceptStmt'];
 function match_AcceptStmt($stack = []) {
 	$matchrule = 'AcceptStmt';
@@ -2108,7 +2108,7 @@ function match_AcceptStmt($stack = []) {
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) { $this->store($result, $subres); }
 		else { $_333 = \false; break; }
-		$key = 'match_'.'String'; $pos = $this->pos;
+		$key = 'match_'.'Expression'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
@@ -2124,7 +2124,7 @@ function match_AcceptStmt($stack = []) {
 }
 
 
-/* RefuseStmt: "REFUSE" _ state:String */
+/* RefuseStmt: "REFUSE" _ state:Expression */
 protected $match_RefuseStmt_typestack = ['RefuseStmt'];
 function match_RefuseStmt($stack = []) {
 	$matchrule = 'RefuseStmt';
@@ -2140,7 +2140,7 @@ function match_RefuseStmt($stack = []) {
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) { $this->store($result, $subres); }
 		else { $_338 = \false; break; }
-		$key = 'match_'.'String'; $pos = $this->pos;
+		$key = 'match_'.'Expression'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));

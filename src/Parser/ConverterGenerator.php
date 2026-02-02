@@ -303,7 +303,7 @@ PHP;
         // Special case for MessageStmt/AcceptStmt/RefuseStmt
         if (in_array($rule, ['MessageStmt', 'AcceptStmt', 'RefuseStmt'])) {
             $key = $rule === 'MessageStmt' ? 'msg' : 'state';
-            $code .= "        \$arg = isset(\$data['$key']) ? \$this->convert(\$data['$key']) : null;\n";
+            $code .= "        \$arg = isset(\$data['$key']) ? \$this->convert(\$data['$key']['value'] ?? \$data['$key']) : null;\n";
             $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$arg);\n";
             $code .= "    }\n\n";
             return $code;

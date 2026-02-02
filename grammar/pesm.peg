@@ -157,13 +157,13 @@ ForeachStatement: "FOREACH" _ var:Identifier _ "=" _ from:Expression _ "TO" _ to
   }
 
 #node(MessageNode)
-MessageStmt: "MESSAGE" _ msg:String
+MessageStmt: "MESSAGE" _ msg:Expression
 
 #node(AcceptNode)
-AcceptStmt: "ACCEPT" _ state:String
+AcceptStmt: "ACCEPT" _ state:Expression
 
 #node(RefuseNode)
-RefuseStmt: "REFUSE" _ state:String
+RefuseStmt: "REFUSE" _ state:Expression
 
 _: /[ \t\n\r]{0,}/
 

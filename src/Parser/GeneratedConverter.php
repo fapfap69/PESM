@@ -261,7 +261,7 @@ class GeneratedConverter
      */
     private function convertMessageStmt(array $data): \PESM\Parser\AST\MessageNode
     {
-        $arg = isset($data['msg']) ? $this->convert($data['msg']) : null;
+        $arg = isset($data['msg']) ? $this->convert($data['msg']['value'] ?? $data['msg']) : null;
         return new \PESM\Parser\AST\MessageNode($arg);
     }
 
@@ -270,7 +270,7 @@ class GeneratedConverter
      */
     private function convertAcceptStmt(array $data): \PESM\Parser\AST\AcceptNode
     {
-        $arg = isset($data['state']) ? $this->convert($data['state']) : null;
+        $arg = isset($data['state']) ? $this->convert($data['state']['value'] ?? $data['state']) : null;
         return new \PESM\Parser\AST\AcceptNode($arg);
     }
 
@@ -279,7 +279,7 @@ class GeneratedConverter
      */
     private function convertRefuseStmt(array $data): \PESM\Parser\AST\RefuseNode
     {
-        $arg = isset($data['state']) ? $this->convert($data['state']) : null;
+        $arg = isset($data['state']) ? $this->convert($data['state']['value'] ?? $data['state']) : null;
         return new \PESM\Parser\AST\RefuseNode($arg);
     }
 
