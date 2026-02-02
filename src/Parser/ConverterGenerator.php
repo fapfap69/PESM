@@ -300,11 +300,12 @@ PHP;
             return $code;
         }
         
-        // Special case for MessageStmt/AcceptStmt/RefuseStmt
+        // Special case for MessageStmt/AcceptStmt/RefuseStmt - now unified as InterruptNode
         if (in_array($rule, ['MessageStmt', 'AcceptStmt', 'RefuseStmt'])) {
+            $type = strtolower(str_replace('Stmt', '', $rule));
             $key = $rule === 'MessageStmt' ? 'msg' : 'state';
             $code .= "        \$arg = isset(\$data['$key']) ? \$this->convert(\$data['$key']['value'] ?? \$data['$key']) : null;\n";
-            $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$arg);\n";
+            $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}('$type', \$arg);\n";
             $code .= "    }\n\n";
             return $code;
         }

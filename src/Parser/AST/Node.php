@@ -19,10 +19,11 @@ abstract class Node {
      * 
      * @param \PESM\Runtime\ExecutionContext $context
      * @param \PESM\Runtime\ControlFlow $flow
-     * @param \PESM\Runtime\CommandRegistry $commands
+     * @param \PESM\Runtime\FunctionRegistry $commands
+     * @param \PESM\Runtime\ProgramCounter $pc
      * @return mixed
      */
-    abstract public function execute($context, $flow, $commands);
+    abstract public function execute($context, $flow, $commands, $pc = null);
     
     /**
      * Get child nodes (for traversal)

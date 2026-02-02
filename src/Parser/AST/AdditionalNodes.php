@@ -17,14 +17,14 @@ class WhileNode extends Node
         $this->body = $body;
     }
     
-    public function execute($context, $flow, $commands)
+    public function execute($context, $flow, $commands, $pc = null)
     {
         while (true) {
-            $condResult = $this->condition->execute($context, $flow, $commands);
+            $condResult = $this->condition->execute($context, $flow, $commands, $pc);
             if (!$condResult) break;
             
             foreach ($this->body as $stmt) {
-                $stmt->execute($context, $flow, $commands);
+                $stmt->execute($context, $flow, $commands, $pc);
                 
                 if ($flow->hasBreak()) {
                     $flow->clearBreak();
@@ -60,9 +60,9 @@ class InputMaskNode extends Node
         $this->maskName = $maskName;
     }
     
-    public function execute($context, $flow, $commands)
+    public function execute($context, $flow, $commands, $pc = null)
     {
-        $mask = $this->maskName->execute($context, $flow, $commands);
+        $mask = $this->maskName->execute($context, $flow, $commands, $pc);
         // Trigger INPUT_MASK command
         $flow->setCommand('INPUT_MASK', $mask);
     }
@@ -88,9 +88,9 @@ class TitleNode extends Node
         $this->value = $value;
     }
     
-    public function execute($context, $flow, $commands)
+    public function execute($context, $flow, $commands, $pc = null)
     {
-        $val = $this->value->execute($context, $flow, $commands);
+        $val = $this->value->execute($context, $flow, $commands, $pc);
         // Store in special TITLE scope
         $context->setVariable('TITLE_' . $this->varName, $val);
     }

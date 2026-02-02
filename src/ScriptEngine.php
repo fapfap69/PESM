@@ -18,6 +18,8 @@ require_once __DIR__ . '/Parser/AST/AdditionalNodes.php';
 class ScriptEngine {
     private Runtime\Interpreter $interpreter;
     private $parser = null;
+    private ?Parser\AST\Node $cachedAst = null;
+    private ?string $cachedScript = null;
     
     public function __construct() {
         $this->interpreter = new Runtime\Interpreter();
@@ -28,15 +30,19 @@ class ScriptEngine {
      * 
      * @param string $script The script to execute
      * @param array $variables Initial variables
+     * @param int $resumeFrom Statement index to resume from (0-based)
      * @return array Execution result with status, variables, message
      */
-    public function execute(string $script, array $variables = []): array {
+    public function execute(string $script, array $variables = [], ?int $resumeFrom = null): array {
         $oldLevel = error_reporting(E_ERROR | E_PARSE);
         
-        // Parse script to AST using generated parser
-        $ast = $this->parse($script);
+        // Parse script to AST (cache if same script)
+        if ($this->cachedScript !== $script) {
+            $this->cachedAst = $this->parse($script);
+            $this->cachedScript = $script;
+        }
         
-        $result = $this->interpreter->execute($ast, $variables);
+        $result = $this->interpreter->execute($this->cachedAst, $variables, $resumeFrom);
         
         error_reporting($oldLevel);
         return $result->toArray();
@@ -45,18 +51,13 @@ class ScriptEngine {
     /**
      * Resume execution from checkpoint
      * 
-     * @param string $checkpointData Serialized checkpoint
+     * @param string $script Original script
+     * @param array $variables Variables state
+     * @param int $resumeFrom Statement index to resume from
      * @return array Execution result
      */
-    public function resume(string $checkpointData): array {
-        $this->interpreter->setCheckpoint($checkpointData);
-        
-        // Get cached AST
-        $ast = $this->getCachedAST();
-        
-        $result = $this->interpreter->execute($ast);
-        
-        return $result->toArray();
+    public function resume(string $script, array $variables, int $resumeFrom): array {
+        return $this->execute($script, $variables, $resumeFrom);
     }
     
     /**

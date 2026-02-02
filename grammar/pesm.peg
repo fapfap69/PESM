@@ -156,13 +156,13 @@ ForeachStatement: "FOREACH" _ var:Identifier _ "=" _ from:Expression _ "TO" _ to
     $res['loopBody'][] = $sub;
   }
 
-#node(MessageNode)
+#node(InterruptNode)
 MessageStmt: "MESSAGE" _ msg:Expression
 
-#node(AcceptNode)
+#node(InterruptNode)
 AcceptStmt: "ACCEPT" _ state:Expression
 
-#node(RefuseNode)
+#node(InterruptNode)
 RefuseStmt: "REFUSE" _ state:Expression
 
 _: /[ \t\n\r]{0,}/

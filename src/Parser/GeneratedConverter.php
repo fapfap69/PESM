@@ -17,9 +17,7 @@ use PESM\Parser\AST\LiteralNode;
 use PESM\Parser\AST\VariableNode;
 use PESM\Parser\AST\IfNode;
 use PESM\Parser\AST\ForeachNode;
-use PESM\Parser\AST\MessageNode;
-use PESM\Parser\AST\AcceptNode;
-use PESM\Parser\AST\RefuseNode;
+use PESM\Parser\AST\InterruptNode;
 
 class GeneratedConverter
 {
@@ -257,30 +255,30 @@ class GeneratedConverter
     }
 
     /**
-     * Convert MessageStmt to MessageNode
+     * Convert MessageStmt to InterruptNode
      */
-    private function convertMessageStmt(array $data): \PESM\Parser\AST\MessageNode
+    private function convertMessageStmt(array $data): \PESM\Parser\AST\InterruptNode
     {
         $arg = isset($data['msg']) ? $this->convert($data['msg']['value'] ?? $data['msg']) : null;
-        return new \PESM\Parser\AST\MessageNode($arg);
+        return new \PESM\Parser\AST\InterruptNode('message', $arg);
     }
 
     /**
-     * Convert AcceptStmt to AcceptNode
+     * Convert AcceptStmt to InterruptNode
      */
-    private function convertAcceptStmt(array $data): \PESM\Parser\AST\AcceptNode
+    private function convertAcceptStmt(array $data): \PESM\Parser\AST\InterruptNode
     {
         $arg = isset($data['state']) ? $this->convert($data['state']['value'] ?? $data['state']) : null;
-        return new \PESM\Parser\AST\AcceptNode($arg);
+        return new \PESM\Parser\AST\InterruptNode('accept', $arg);
     }
 
     /**
-     * Convert RefuseStmt to RefuseNode
+     * Convert RefuseStmt to InterruptNode
      */
-    private function convertRefuseStmt(array $data): \PESM\Parser\AST\RefuseNode
+    private function convertRefuseStmt(array $data): \PESM\Parser\AST\InterruptNode
     {
         $arg = isset($data['state']) ? $this->convert($data['state']['value'] ?? $data['state']) : null;
-        return new \PESM\Parser\AST\RefuseNode($arg);
+        return new \PESM\Parser\AST\InterruptNode('refuse', $arg);
     }
 
     /**

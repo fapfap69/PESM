@@ -16,9 +16,16 @@ class ProgramNode extends Node {
         parent::__construct();
     }
     
-    public function execute($context, $flow, $commands) {
+    public function execute($context, $flow, $commands, $pc = null) {
         foreach ($this->statements as $stmt) {
-            $stmt->execute($context, $flow, $commands);
+            // Skip se in resume mode
+            if ($pc && $pc->shouldSkip($stmt->id)) {
+                continue;
+            }
+            
+            if ($pc) $pc->setCurrentNode($stmt->id);
+            
+            $stmt->execute($context, $flow, $commands, $pc);
             
             // Check for early termination
             if ($flow->hasReturnValue() || $flow->getAction() || $flow->needsInterrupt()) {

@@ -10,11 +10,11 @@ use PESM\Parser\AST\Node;
 
 require_once __DIR__ . '/ExecutionContext.php';
 require_once __DIR__ . '/Components.php';
+require_once __DIR__ . '/ProgramCounter.php';
 
 class Interpreter {
     private CommandRegistry $commands;
     private FunctionRegistry $functions;
-    private ?ExecutionState $checkpoint = null;
     
     public function __construct() {
         $this->commands = new CommandRegistry();
@@ -22,33 +22,30 @@ class Interpreter {
         $this->registerBuiltinCommands();
     }
     
-    public function execute(Node $ast, array $variables = []): Result {
+    public function execute(Node $ast, array $variables = [], ?int $resumeFromId = null): Result {
         $context = new ExecutionContext($variables);
         $flow = new ControlFlow();
+        $pc = new ProgramCounter();
         
-        // Resume from checkpoint if exists
-        if ($this->checkpoint) {
-            return $this->resume($ast, $this->checkpoint);
+        if ($resumeFromId !== null) {
+            $pc->setResumePoint($resumeFromId);
         }
         
         try {
-            $ast->execute($context, $flow, $this->functions);
+            $ast->execute($context, $flow, $this->functions, $pc);
             
-            // Check for interruption (INPUT_MASK, etc.)
+            // Check for interruption (MESSAGE, ACCEPT, REFUSE)
             if ($flow->needsInterrupt()) {
-                $this->checkpoint = new ExecutionState(
-                    nodeId: $ast->id,
-                    variables: $context->getAll(),
-                    callStack: $context->getCallStack(),
-                    scopeStack: $context->getScopeStack(),
-                    pendingAction: $flow->getPendingAction()
-                );
+                $type = $flow->getPendingAction();
+                $data = $flow->getActionData();
                 
                 return new Result(
                     status: 'interrupted',
                     variables: $context->getAll(),
-                    checkpoint: $this->checkpoint->serialize(),
-                    action: $flow->getPendingAction()
+                    action: $type,
+                    message: $type === 'message' ? $data : null,
+                    actionData: $data,
+                    resumeFrom: $pc->getCurrentNodeId()
                 );
             }
             
@@ -66,40 +63,6 @@ class Interpreter {
                 variables: $context->getAll()
             );
         }
-    }
-    
-    private function resume(Node $ast, ExecutionState $state): Result {
-        $context = new ExecutionContext($state->variables);
-        $context->restoreCallStack($state->callStack);
-        $context->restoreScopeStack($state->scopeStack);
-        
-        $resumeNode = $this->findNodeById($ast, $state->nodeId);
-        
-        if (!$resumeNode) {
-            throw new \Exception("Cannot resume: node not found");
-        }
-        
-        $flow = new ControlFlow();
-        $this->checkpoint = null;
-        
-        return $this->execute($resumeNode, $context->getAll());
-    }
-    
-    private function findNodeById(Node $node, int $id): ?Node {
-        if ($node->id === $id) {
-            return $node;
-        }
-        
-        foreach ($node->getChildren() as $child) {
-            $found = $this->findNodeById($child, $id);
-            if ($found) return $found;
-        }
-        
-        return null;
-    }
-    
-    public function setCheckpoint(string $serialized): void {
-        $this->checkpoint = ExecutionState::deserialize($serialized);
     }
     
     public function registerCommand(string $name, callable $handler): void {

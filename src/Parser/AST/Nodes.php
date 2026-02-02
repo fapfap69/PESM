@@ -12,7 +12,7 @@ class LiteralNode extends Node {
         parent::__construct();
     }
     
-    public function execute($context, $flow, $commands) {
+    public function execute($context, $flow, $commands, $pc = null) {
         // Convert numeric strings to numbers
         if (is_string($this->value) && is_numeric($this->value)) {
             return strpos($this->value, '.') !== false ? (float)$this->value : (int)$this->value;
@@ -31,7 +31,7 @@ class VariableNode extends Node {
         parent::__construct();
     }
     
-    public function execute($context, $flow, $commands) {
+    public function execute($context, $flow, $commands, $pc = null) {
         return $context->get($this->name);
     }
     
@@ -49,8 +49,8 @@ class AssignmentNode extends Node {
         parent::__construct();
     }
     
-    public function execute($context, $flow, $commands) {
-        $value = $this->expression->execute($context, $flow, $commands);
+    public function execute($context, $flow, $commands, $pc = null) {
+        $value = $this->expression->execute($context, $flow, $commands, $pc);
         $context->set($this->variable, $value);
         return $value;
     }
@@ -70,9 +70,9 @@ class BinaryOpNode extends Node {
         parent::__construct();
     }
     
-    public function execute($context, $flow, $commands) {
-        $l = $this->left->execute($context, $flow, $commands);
-        $r = $this->right->execute($context, $flow, $commands);
+    public function execute($context, $flow, $commands, $pc = null) {
+        $l = $this->left->execute($context, $flow, $commands, $pc);
+        $r = $this->right->execute($context, $flow, $commands, $pc);
         
         // Special case for range
         if ($this->operator === 'range') {
@@ -111,9 +111,9 @@ class ArrayAccessNode extends Node {
         parent::__construct();
     }
     
-    public function execute($context, $flow, $commands) {
-        $arr = $this->array->execute($context, $flow, $commands);
-        $idx = $this->index->execute($context, $flow, $commands);
+    public function execute($context, $flow, $commands, $pc = null) {
+        $arr = $this->array->execute($context, $flow, $commands, $pc);
+        $idx = $this->index->execute($context, $flow, $commands, $pc);
         return $arr[$idx] ?? null;
     }
     
@@ -132,13 +132,20 @@ class IfNode extends Node {
         parent::__construct();
     }
     
-    public function execute($context, $flow, $commands) {
-        $condValue = $this->condition->execute($context, $flow, $commands);
+    public function execute($context, $flow, $commands, $pc = null) {
+        $condValue = $this->condition->execute($context, $flow, $commands, $pc);
         
         $body = $condValue ? $this->thenBody : $this->elseBody;
         
         foreach ($body as $stmt) {
-            $stmt->execute($context, $flow, $commands);
+            // Skip se in resume mode
+            if ($pc && $pc->shouldSkip($stmt->id)) {
+                continue;
+            }
+            
+            if ($pc) $pc->setCurrentNode($stmt->id);
+            
+            $stmt->execute($context, $flow, $commands, $pc);
             if ($flow->hasReturnValue() || $flow->getAction() || $flow->needsInterrupt()) {
                 break;
             }
@@ -160,8 +167,8 @@ class ForeachNode extends Node {
         parent::__construct();
     }
     
-    public function execute($context, $flow, $commands) {
-        $items = $this->iterable->execute($context, $flow, $commands);
+    public function execute($context, $flow, $commands, $pc = null) {
+        $items = $this->iterable->execute($context, $flow, $commands, $pc);
         
         if (!is_array($items)) {
             throw new \Exception("FOREACH requires an array");
@@ -171,7 +178,14 @@ class ForeachNode extends Node {
             $context->set($this->variable, $item);
             
             foreach ($this->body as $stmt) {
-                $stmt->execute($context, $flow, $commands);
+                // Skip se in resume mode
+                if ($pc && $pc->shouldSkip($stmt->id)) {
+                    continue;
+                }
+                
+                if ($pc) $pc->setCurrentNode($stmt->id);
+                
+                $stmt->execute($context, $flow, $commands, $pc);
                 
                 if ($flow->shouldBreak()) {
                     $flow->reset();
@@ -181,7 +195,7 @@ class ForeachNode extends Node {
                     $flow->reset();
                     break;
                 }
-                if ($flow->hasReturnValue() || $flow->getAction()) {
+                if ($flow->hasReturnValue() || $flow->getAction() || $flow->needsInterrupt()) {
                     return;
                 }
             }
@@ -202,10 +216,10 @@ class FunctionCallNode extends Node {
         parent::__construct();
     }
     
-    public function execute($context, $flow, $commands) {
+    public function execute($context, $flow, $commands, $pc = null) {
         // Evaluate arguments
         $args = array_map(
-            fn($arg) => $arg->execute($context, $flow, $commands),
+            fn($arg) => $arg->execute($context, $flow, $commands, $pc),
             $this->arguments
         );
         
@@ -233,7 +247,7 @@ class FunctionCallNode extends Node {
         
         $returnValue = null;
         foreach ($funcDef->body as $stmt) {
-            $stmt->execute($context, $flow, $commands);
+            $stmt->execute($context, $flow, $commands, $pc);
             
             if ($flow->hasReturnValue()) {
                 $returnValue = $flow->getReturnValue();
@@ -252,47 +266,24 @@ class FunctionCallNode extends Node {
     }
 }
 
-// MESSAGE Command Node
-class MessageNode extends Node {
-    public function __construct(public Node $expression) {
+// Interrupt Command Node (MESSAGE, ACCEPT, REFUSE)
+class InterruptNode extends Node {
+    public function __construct(
+        public string $type,
+        public ?Node $expression = null
+    ) {
         parent::__construct();
     }
     
-    public function execute($context, $flow, $commands) {
-        $value = $this->expression->execute($context, $flow, $commands);
-        $context->setMessage((string)$value);
+    public function execute($context, $flow, $commands, $pc = null) {
+        $data = $this->expression 
+            ? $this->expression->execute($context, $flow, $commands, $pc)
+            : null;
+        $flow->setInterrupt($this->type, $data);
     }
     
     public function getChildren(): array {
-        return [$this->expression];
-    }
-}
-
-// ACCEPT Command Node
-class AcceptNode extends Node {
-    public function __construct(public ?Node $state = null) {
-        parent::__construct();
-    }
-    
-    public function execute($context, $flow, $commands) {
-        $stateName = $this->state 
-            ? $this->state->execute($context, $flow, $commands)
-            : null;
-        $flow->setAction('accept', $stateName);
-    }
-}
-
-// REFUSE Command Node
-class RefuseNode extends Node {
-    public function __construct(public ?Node $state = null) {
-        parent::__construct();
-    }
-    
-    public function execute($context, $flow, $commands) {
-        $stateName = $this->state 
-            ? $this->state->execute($context, $flow, $commands)
-            : null;
-        $flow->setAction('refuse', $stateName);
+        return $this->expression ? [$this->expression] : [];
     }
 }
 
@@ -302,9 +293,9 @@ class ReturnNode extends Node {
         parent::__construct();
     }
     
-    public function execute($context, $flow, $commands) {
+    public function execute($context, $flow, $commands, $pc = null) {
         $value = $this->expression 
-            ? $this->expression->execute($context, $flow, $commands)
+            ? $this->expression->execute($context, $flow, $commands, $pc)
             : null;
         $flow->setReturn($value);
     }
@@ -320,7 +311,7 @@ class FunctionDefNode extends Node {
         parent::__construct();
     }
     
-    public function execute($context, $flow, $commands) {
+    public function execute($context, $flow, $commands, $pc = null) {
         $context->defineFunction($this->name, $this);
     }
     
@@ -338,8 +329,8 @@ class UnaryOpNode extends Node {
         parent::__construct();
     }
     
-    public function execute($context, $flow, $commands) {
-        $val = $this->operand->execute($context, $flow, $commands);
+    public function execute($context, $flow, $commands, $pc = null) {
+        $val = $this->operand->execute($context, $flow, $commands, $pc);
         
         return match($this->operator) {
             '-' => -$val,

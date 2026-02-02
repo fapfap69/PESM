@@ -16,6 +16,7 @@ class ControlFlow {
     private $actionData = null;
     private bool $interrupt = false;
     private ?string $interruptType = null;
+    private int $resumeIndex = 0;
     
     public function setBreak(): void { $this->shouldBreak = true; }
     public function setContinue(): void { $this->shouldContinue = true; }
@@ -50,6 +51,9 @@ class ControlFlow {
     
     public function needsInterrupt(): bool { return $this->interrupt; }
     public function getPendingAction(): ?string { return $this->interruptType; }
+    
+    public function setResumeIndex(int $index): void { $this->resumeIndex = $index; }
+    public function getResumeIndex(): int { return $this->resumeIndex; }
     
     public function reset(): void {
         $this->shouldBreak = false;
@@ -175,7 +179,8 @@ class Result {
         public ?string $message = null,
         public ?string $action = null,
         public ?string $error = null,
-        public ?string $checkpoint = null
+        public $actionData = null,
+        public ?int $resumeFrom = null
     ) {}
     
     public function toArray(): array {
@@ -185,7 +190,8 @@ class Result {
             'message' => $this->message,
             'action' => $this->action,
             'error' => $this->error,
-            'checkpoint' => $this->checkpoint
+            'actionData' => $this->actionData,
+            'resumeFrom' => $this->resumeFrom
         ];
     }
 }
