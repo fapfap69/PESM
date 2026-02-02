@@ -3,51 +3,6 @@
 namespace PESM\Parser\AST;
 
 /**
- * WhileNode - WHILE loop
- */
-class WhileNode extends Node
-{
-    public $condition;
-    public $body;
-    
-    public function __construct($condition, array $body)
-    {
-        parent::__construct();
-        $this->condition = $condition;
-        $this->body = $body;
-    }
-    
-    public function execute($context, $flow, $commands, $pc = null)
-    {
-        while (true) {
-            $condResult = $this->condition->execute($context, $flow, $commands, $pc);
-            if (!$condResult) break;
-            
-            foreach ($this->body as $stmt) {
-                $stmt->execute($context, $flow, $commands, $pc);
-                
-                if ($flow->hasBreak()) {
-                    $flow->clearBreak();
-                    return;
-                }
-                if ($flow->hasContinue()) {
-                    $flow->clearContinue();
-                    break;
-                }
-                if ($flow->hasReturn() || $flow->hasAction()) {
-                    return;
-                }
-            }
-        }
-    }
-    
-    public function getChildren(): array
-    {
-        return array_merge([$this->condition], $this->body);
-    }
-}
-
-/**
  * InputMaskNode - INPUT_MASK command
  */
 class InputMaskNode extends Node

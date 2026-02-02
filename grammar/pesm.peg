@@ -10,7 +10,7 @@ Program: _ stmt:Statement+
     $res['statements'][] = $sub;
   }
 
-Statement: alt:FunctionDef _ | alt:IfStatement _ | alt:ForeachStatement _ | alt:MessageStmt _ | alt:AcceptStmt _ | alt:RefuseStmt _ | alt:ReturnStmt _ | alt:Assignment _
+Statement: alt:FunctionDef _ | alt:IfStatement _ | alt:WhileStatement _ | alt:ForeachStatement _ | alt:MessageStmt _ | alt:AcceptStmt _ | alt:RefuseStmt _ | alt:ReturnStmt _ | alt:Assignment _
   function alt(&$res, $sub) {
     $res['node'] = $sub;
   }
@@ -84,7 +84,7 @@ Additive: left:Multiplicative ( _ op:AddOp _ right:Multiplicative )*
 
 AddOp: "+" | "-"
 
-Multiplicative: left:Unary ( _ op:MulOp _ right:Unary )*
+Multiplicative: left:Postfix ( _ op:MulOp _ right:Postfix )*
   function left(&$res, $sub) {
     $res['left'] = $sub;
   }
@@ -99,6 +99,16 @@ Multiplicative: left:Unary ( _ op:MulOp _ right:Unary )*
 
 MulOp: "*" | "/"
 
+#node(ArrayAccessNode)
+Postfix: base:Unary ( _ "[" _ index:Expression _ "]" )*
+  function base(&$res, $sub) {
+    $res['base'] = $sub;
+  }
+  function index(&$res, $sub) {
+    if (!isset($res['indices'])) $res['indices'] = [];
+    $res['indices'][] = $sub;
+  }
+
 #node(UnaryOpNode)
 Unary: op:UnaryOp _ expr:Unary | val:Primary
   function op(&$res, $sub) {
@@ -110,9 +120,18 @@ Unary: op:UnaryOp _ expr:Unary | val:Primary
 
 UnaryOp: "NOT" | "-" | "+"
 
-Primary: val:FunctionCall | val:String | val:Number | val:Identifier | "(" _ val:Expression _ ")"
+Primary: val:ArrayLiteral | val:FunctionCall | val:String | val:Number | val:Identifier | "(" _ val:Expression _ ")"
   function val(&$res, $sub) {
     $res['value'] = $sub;
+  }
+
+#node(ArrayLiteralNode)
+ArrayLiteral: "[" _ elements:ArrayElements? _ "]"
+
+ArrayElements: elem:Expression ( _ "," _ elem:Expression )*
+  function elem(&$res, $sub) {
+    if (!isset($res['elements'])) $res['elements'] = [];
+    $res['elements'][] = $sub;
   }
 
 #node(FunctionCallNode)
@@ -136,7 +155,7 @@ Number: /[0-9]+(\.[0-9]+)?/
 #node(VariableNode)
 Identifier: !Keyword /[a-zA-Z_][a-zA-Z0-9_]{0,}/
 
-Keyword: ("FUNCTION" | "RETURN" | "FOREACH" | "MESSAGE" | "ACCEPT" | "REFUSE" | "ELSE" | "AND" | "OR" | "NOT" | "END" | "IF" | "TO") !(/[a-zA-Z0-9_]/)
+Keyword: ("WHILE" | "FUNCTION" | "RETURN" | "FOREACH" | "MESSAGE" | "ACCEPT" | "REFUSE" | "ELSE" | "AND" | "OR" | "NOT" | "END" | "IF" | "TO") !(/[a-zA-Z0-9_]/)
 
 #node(IfNode)
 IfStatement: "IF" _ cond:Expression _ body:Statement+ ( "ELSE" _ else:Statement+ )? "END"
@@ -151,6 +170,13 @@ IfStatement: "IF" _ cond:Expression _ body:Statement+ ( "ELSE" _ else:Statement+
 
 #node(ForeachNode)
 ForeachStatement: "FOREACH" _ var:Identifier _ "=" _ from:Expression _ "TO" _ to:Expression _ body:Statement+ "END"
+  function body(&$res, $sub) {
+    if (!isset($res['loopBody'])) $res['loopBody'] = [];
+    $res['loopBody'][] = $sub;
+  }
+
+#node(WhileNode)
+WhileStatement: "WHILE" _ cond:Expression _ body:Statement+ "END"
   function body(&$res, $sub) {
     if (!isset($res['loopBody'])) $res['loopBody'] = [];
     $res['loopBody'][] = $sub;

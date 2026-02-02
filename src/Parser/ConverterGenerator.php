@@ -154,8 +154,8 @@ PHP;
         $code .= "     * Convert $rule to $nodeClass\n";
         $code .= "     */\n";
         
-        // Special return type for Unary
-        if ($rule === 'Unary') {
+        // Special return type for Unary and Postfix
+        if (in_array($rule, ['Unary', 'Postfix'])) {
             $code .= "    private function convert{$rule}(array \$data): \\PESM\\Parser\\AST\\Node\n";
         } else {
             $code .= "    private function convert{$rule}(array \$data): \\PESM\\Parser\\AST\\{$nodeClass}\n";
@@ -262,6 +262,21 @@ PHP;
             return $code;
         }
         
+        // Special case for WhileStatement
+        if ($rule === 'WhileStatement') {
+            $code .= "        \$cond = \$this->convert(\$data['cond']['value'] ?? \$data['cond']);\n";
+            $code .= "        \$body = [];\n";
+            $code .= "        if (isset(\$data['loopBody'])) {\n";
+            $code .= "            foreach (\$data['loopBody'] as \$stmt) {\n";
+            $code .= "                \$node = isset(\$stmt['node']) ? \$stmt['node'] : \$stmt;\n";
+            $code .= "                \$body[] = \$this->convert(\$node);\n";
+            $code .= "            }\n";
+            $code .= "        }\n";
+            $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$cond, \$body);\n";
+            $code .= "    }\n\n";
+            return $code;
+        }
+        
         // Special case for FunctionCall
         if ($rule === 'FunctionCall') {
             $code .= "        \$nameNode = \$this->convert(\$data['fname']);\n";
@@ -272,6 +287,35 @@ PHP;
             $code .= "            }\n";
             $code .= "        }\n";
             $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$nameNode->name, \$args);\n";
+            $code .= "    }\n\n";
+            return $code;
+        }
+        
+        // Special case for ArrayLiteral
+        if ($rule === 'ArrayLiteral') {
+            $code .= "        \$elements = [];\n";
+            $code .= "        if (isset(\$data['elements']['elements']) && is_array(\$data['elements']['elements'])) {\n";
+            $code .= "            foreach (\$data['elements']['elements'] as \$elem) {\n";
+            $code .= "                \$elements[] = \$this->convert(\$elem);\n";
+            $code .= "            }\n";
+            $code .= "        }\n";
+            $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$elements);\n";
+            $code .= "    }\n\n";
+            return $code;
+        }
+        
+        // Special case for Postfix (array access)
+        if ($rule === 'Postfix') {
+            $code .= "        \$base = \$this->convert(\$data['base']);\n";
+            $code .= "        if (!isset(\$data['indices']) || empty(\$data['indices'])) {\n";
+            $code .= "            return \$base; // No indices, just return base\n";
+            $code .= "        }\n";
+            $code .= "        // Chain array access for multiple indices\n";
+            $code .= "        foreach (\$data['indices'] as \$idx) {\n";
+            $code .= "            \$indexNode = \$this->convert(\$idx);\n";
+            $code .= "            \$base = new \\PESM\\Parser\\AST\\ArrayAccessNode(\$base, \$indexNode);\n";
+            $code .= "        }\n";
+            $code .= "        return \$base;\n";
             $code .= "    }\n\n";
             return $code;
         }
@@ -310,8 +354,23 @@ PHP;
             return $code;
         }
         
+        // Special case for Postfix in unwrap
+        if ($type === 'Postfix') {
+            if (isset($data['indices']) && !empty($data['indices'])) {
+                $base = $this->convert($data['base']);
+                foreach ($data['indices'] as $idx) {
+                    $indexNode = $this->convert($idx);
+                    $base = new \PESM\Parser\AST\ArrayAccessNode($base, $indexNode);
+                }
+                return $base;
+            }
+            if (isset($data['base'])) {
+                return $this->convert($data['base']);
+            }
+        }
+        
         // Special case for binary operations (Additive, Multiplicative)
-        if (in_array($rule, ['Additive', 'Multiplicative'])) {
+        if (in_array($type, ['Additive', 'Multiplicative'])) {
             $code .= "        // Build binary operation tree\n";
             $code .= "        \$left = \$this->convert(\$data['left']);\n";
             $code .= "        if (!isset(\$data['ops']) || empty(\$data['ops'])) {\n";

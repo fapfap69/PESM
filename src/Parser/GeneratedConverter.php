@@ -11,12 +11,15 @@ use PESM\Parser\AST\ProgramNode;
 use PESM\Parser\AST\FunctionDefNode;
 use PESM\Parser\AST\ReturnNode;
 use PESM\Parser\AST\AssignmentNode;
+use PESM\Parser\AST\ArrayAccessNode;
 use PESM\Parser\AST\UnaryOpNode;
+use PESM\Parser\AST\ArrayLiteralNode;
 use PESM\Parser\AST\FunctionCallNode;
 use PESM\Parser\AST\LiteralNode;
 use PESM\Parser\AST\VariableNode;
 use PESM\Parser\AST\IfNode;
 use PESM\Parser\AST\ForeachNode;
+use PESM\Parser\AST\WhileNode;
 use PESM\Parser\AST\InterruptNode;
 
 class GeneratedConverter
@@ -155,6 +158,23 @@ class GeneratedConverter
     }
 
     /**
+     * Convert Postfix to ArrayAccessNode
+     */
+    private function convertPostfix(array $data): \PESM\Parser\AST\Node
+    {
+        $base = $this->convert($data['base']);
+        if (!isset($data['indices']) || empty($data['indices'])) {
+            return $base; // No indices, just return base
+        }
+        // Chain array access for multiple indices
+        foreach ($data['indices'] as $idx) {
+            $indexNode = $this->convert($idx);
+            $base = new \PESM\Parser\AST\ArrayAccessNode($base, $indexNode);
+        }
+        return $base;
+    }
+
+    /**
      * Convert Unary to UnaryOpNode
      */
     private function convertUnary(array $data): \PESM\Parser\AST\Node
@@ -168,6 +188,20 @@ class GeneratedConverter
             return $this->convert($data['node']);
         }
         throw new \Exception('Invalid Unary node');
+    }
+
+    /**
+     * Convert ArrayLiteral to ArrayLiteralNode
+     */
+    private function convertArrayLiteral(array $data): \PESM\Parser\AST\ArrayLiteralNode
+    {
+        $elements = [];
+        if (isset($data['elements']['elements']) && is_array($data['elements']['elements'])) {
+            foreach ($data['elements']['elements'] as $elem) {
+                $elements[] = $this->convert($elem);
+            }
+        }
+        return new \PESM\Parser\AST\ArrayLiteralNode($elements);
     }
 
     /**
@@ -252,6 +286,22 @@ class GeneratedConverter
         // ForeachNode expects (var, iterable, body) but grammar has from/to
         // Create range array
         return new \PESM\Parser\AST\ForeachNode($varNode->name, new \PESM\Parser\AST\BinaryOpNode($from, 'range', $to), $body);
+    }
+
+    /**
+     * Convert WhileStatement to WhileNode
+     */
+    private function convertWhileStatement(array $data): \PESM\Parser\AST\WhileNode
+    {
+        $cond = $this->convert($data['cond']['value'] ?? $data['cond']);
+        $body = [];
+        if (isset($data['loopBody'])) {
+            foreach ($data['loopBody'] as $stmt) {
+                $node = isset($stmt['node']) ? $stmt['node'] : $stmt;
+                $body[] = $this->convert($node);
+            }
+        }
+        return new \PESM\Parser\AST\WhileNode($cond, $body);
     }
 
     /**

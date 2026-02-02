@@ -122,6 +122,27 @@ class ArrayAccessNode extends Node {
     }
 }
 
+// Array Literal Node
+class ArrayLiteralNode extends Node {
+    public function __construct(
+        public array $elements = []
+    ) {
+        parent::__construct();
+    }
+    
+    public function execute($context, $flow, $commands, $pc = null) {
+        $result = [];
+        foreach ($this->elements as $elem) {
+            $result[] = $elem->execute($context, $flow, $commands, $pc);
+        }
+        return $result;
+    }
+    
+    public function getChildren(): array {
+        return $this->elements;
+    }
+}
+
 // IF Node
 class IfNode extends Node {
     public function __construct(
@@ -204,6 +225,52 @@ class ForeachNode extends Node {
     
     public function getChildren(): array {
         return array_merge([$this->iterable], $this->body);
+    }
+}
+
+// WHILE Node
+class WhileNode extends Node {
+    public function __construct(
+        public Node $condition,
+        public array $body
+    ) {
+        parent::__construct();
+    }
+    
+    public function execute($context, $flow, $commands, $pc = null) {
+        while (true) {
+            $condValue = $this->condition->execute($context, $flow, $commands, $pc);
+            
+            if (!$condValue) {
+                break;
+            }
+            
+            foreach ($this->body as $stmt) {
+                if ($pc && $pc->shouldSkip($stmt->id)) {
+                    continue;
+                }
+                
+                if ($pc) $pc->setCurrentNode($stmt->id);
+                
+                $stmt->execute($context, $flow, $commands, $pc);
+                
+                if ($flow->shouldBreak()) {
+                    $flow->reset();
+                    return;
+                }
+                if ($flow->shouldContinue()) {
+                    $flow->reset();
+                    break;
+                }
+                if ($flow->hasReturnValue() || $flow->getAction() || $flow->needsInterrupt()) {
+                    return;
+                }
+            }
+        }
+    }
+    
+    public function getChildren(): array {
+        return array_merge([$this->condition], $this->body);
     }
 }
 
