@@ -188,6 +188,15 @@ class GeneratedConverter
     }
 
     /**
+     * Convert String to LiteralNode
+     */
+    private function convertString(array $data): \PESM\Parser\AST\LiteralNode
+    {
+        $value = $data['value'] ?? $data['text'];
+        return new \PESM\Parser\AST\LiteralNode($value);
+    }
+
+    /**
      * Convert Number to LiteralNode
      */
     private function convertNumber(array $data): \PESM\Parser\AST\LiteralNode
@@ -272,15 +281,6 @@ class GeneratedConverter
     {
         $arg = isset($data['state']) ? $this->convert($data['state']) : null;
         return new \PESM\Parser\AST\RefuseNode($arg);
-    }
-
-    /**
-     * Convert String to LiteralNode
-     */
-    private function convertString(array $data): \PESM\Parser\AST\LiteralNode
-    {
-        $value = $data['value'] ?? $data['text'];
-        return new \PESM\Parser\AST\LiteralNode($value);
     }
 
     /**

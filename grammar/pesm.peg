@@ -110,7 +110,7 @@ Unary: op:UnaryOp _ expr:Unary | val:Primary
 
 UnaryOp: "NOT" | "-" | "+"
 
-Primary: val:FunctionCall | val:Number | val:Identifier | "(" _ val:Expression _ ")"
+Primary: val:FunctionCall | val:String | val:Number | val:Identifier | "(" _ val:Expression _ ")"
   function val(&$res, $sub) {
     $res['value'] = $sub;
   }
@@ -122,6 +122,12 @@ ArgumentList: arg:Expression ( _ "," _ arg:Expression )*
   function arg(&$res, $sub) {
     if (!isset($res['arguments'])) $res['arguments'] = [];
     $res['arguments'][] = $sub;
+  }
+
+#node(LiteralNode)
+String: '"' content:/[^"]{0,}/ '"'
+  function content(&$res, $sub) {
+    $res['value'] = $sub['text'];
   }
 
 #node(LiteralNode)
@@ -158,12 +164,6 @@ AcceptStmt: "ACCEPT" _ state:String
 
 #node(RefuseNode)
 RefuseStmt: "REFUSE" _ state:String
-
-#node(LiteralNode)
-String: '"' content:/[^"]{0,}/ '"'
-  function content(&$res, $sub) {
-    $res['value'] = $sub['text'];
-  }
 
 _: /[ \t\n\r]{0,}/
 

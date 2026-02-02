@@ -13,6 +13,10 @@ class LiteralNode extends Node {
     }
     
     public function execute($context, $flow, $commands) {
+        // Convert numeric strings to numbers
+        if (is_string($this->value) && is_numeric($this->value)) {
+            return strpos($this->value, '.') !== false ? (float)$this->value : (int)$this->value;
+        }
         return $this->value;
     }
     
