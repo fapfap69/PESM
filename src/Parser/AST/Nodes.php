@@ -143,6 +143,34 @@ class ArrayLiteralNode extends Node {
     }
 }
 
+// Block Node - Generic statement container for {}, BEGIN/END
+class BlockNode extends Node {
+    public function __construct(
+        public array $statements = []
+    ) {
+        parent::__construct();
+    }
+    
+    public function execute($context, $flow, $commands, $pc = null) {
+        foreach ($this->statements as $stmt) {
+            if ($pc && $pc->shouldSkip($stmt->id)) {
+                continue;
+            }
+            
+            if ($pc) $pc->setCurrentNode($stmt->id);
+            
+            $stmt->execute($context, $flow, $commands, $pc);
+            if ($flow->hasReturnValue() || $flow->getAction() || $flow->needsInterrupt()) {
+                break;
+            }
+        }
+    }
+    
+    public function getChildren(): array {
+        return $this->statements;
+    }
+}
+
 // IF Node
 class IfNode extends Node {
     public function __construct(

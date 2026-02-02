@@ -129,6 +129,21 @@ PHP;
             }
         }
         
+        // Special handling for Postfix
+        if ($type === 'Postfix') {
+            if (isset($data['indices']) && !empty($data['indices'])) {
+                $base = $this->convert($data['base']);
+                foreach ($data['indices'] as $idx) {
+                    $indexNode = $this->convert($idx);
+                    $base = new \PESM\Parser\AST\ArrayAccessNode($base, $indexNode);
+                }
+                return $base;
+            }
+            if (isset($data['base'])) {
+                return $this->convert($data['base']);
+            }
+        }
+        
         // Try to find first child node
         foreach ($data as $key => $value) {
             if ($key !== 'text' && $key !== '_matchrule' && $key !== 'name' && $key !== 'offset' && is_array($value)) {
@@ -226,16 +241,27 @@ PHP;
             $code .= "        \$cond = \$this->convert(\$data['cond']['value'] ?? \$data['cond']);\n";
             $code .= "        \$thenBody = [];\n";
             $code .= "        if (isset(\$data['thenBody'])) {\n";
-            $code .= "            foreach (\$data['thenBody'] as \$stmt) {\n";
-            $code .= "                \$node = isset(\$stmt['node']) ? \$stmt['node'] : \$stmt;\n";
-            $code .= "                \$thenBody[] = \$this->convert(\$node);\n";
+            $code .= "            foreach (\$data['thenBody'] as \$item) {\n";
+            $code .= "                // Check if it's a Block node\n";
+            $code .= "                if (isset(\$item['_matchrule']) && \$item['_matchrule'] === 'Block') {\n";
+            $code .= "                    \$blockNode = \$this->convert(\$item);\n";
+            $code .= "                    \$thenBody = array_merge(\$thenBody, \$blockNode->statements);\n";
+            $code .= "                } else {\n";
+            $code .= "                    \$node = isset(\$item['node']) ? \$item['node'] : \$item;\n";
+            $code .= "                    \$thenBody[] = \$this->convert(\$node);\n";
+            $code .= "                }\n";
             $code .= "            }\n";
             $code .= "        }\n";
             $code .= "        \$elseBody = [];\n";
             $code .= "        if (isset(\$data['elseBody'])) {\n";
-            $code .= "            foreach (\$data['elseBody'] as \$stmt) {\n";
-            $code .= "                \$node = isset(\$stmt['node']) ? \$stmt['node'] : \$stmt;\n";
-            $code .= "                \$elseBody[] = \$this->convert(\$node);\n";
+            $code .= "            foreach (\$data['elseBody'] as \$item) {\n";
+            $code .= "                if (isset(\$item['_matchrule']) && \$item['_matchrule'] === 'Block') {\n";
+            $code .= "                    \$blockNode = \$this->convert(\$item);\n";
+            $code .= "                    \$elseBody = array_merge(\$elseBody, \$blockNode->statements);\n";
+            $code .= "                } else {\n";
+            $code .= "                    \$node = isset(\$item['node']) ? \$item['node'] : \$item;\n";
+            $code .= "                    \$elseBody[] = \$this->convert(\$node);\n";
+            $code .= "                }\n";
             $code .= "            }\n";
             $code .= "        }\n";
             $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$cond, \$thenBody, \$elseBody);\n";
@@ -300,6 +326,20 @@ PHP;
             $code .= "            }\n";
             $code .= "        }\n";
             $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$elements);\n";
+            $code .= "    }\n\n";
+            return $code;
+        }
+        
+        // Special case for Block
+        if ($rule === 'Block') {
+            $code .= "        \$stmts = [];\n";
+            $code .= "        if (isset(\$data['statements'])) {\n";
+            $code .= "            foreach (\$data['statements'] as \$stmt) {\n";
+            $code .= "                \$node = isset(\$stmt['node']) ? \$stmt['node'] : \$stmt;\n";
+            $code .= "                \$stmts[] = \$this->convert(\$node);\n";
+            $code .= "            }\n";
+            $code .= "        }\n";
+            $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$stmts);\n";
             $code .= "    }\n\n";
             return $code;
         }

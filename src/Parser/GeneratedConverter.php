@@ -17,6 +17,7 @@ use PESM\Parser\AST\ArrayLiteralNode;
 use PESM\Parser\AST\FunctionCallNode;
 use PESM\Parser\AST\LiteralNode;
 use PESM\Parser\AST\VariableNode;
+use PESM\Parser\AST\BlockNode;
 use PESM\Parser\AST\IfNode;
 use PESM\Parser\AST\ForeachNode;
 use PESM\Parser\AST\WhileNode;
@@ -84,6 +85,21 @@ class GeneratedConverter
             }
             if (isset($data['node'])) {
                 return $this->convert($data['node']);
+            }
+        }
+        
+        // Special handling for Postfix
+        if ($type === 'Postfix') {
+            if (isset($data['indices']) && !empty($data['indices'])) {
+                $base = $this->convert($data['base']);
+                foreach ($data['indices'] as $idx) {
+                    $indexNode = $this->convert($idx);
+                    $base = new \PESM\Parser\AST\ArrayAccessNode($base, $indexNode);
+                }
+                return $base;
+            }
+            if (isset($data['base'])) {
+                return $this->convert($data['base']);
             }
         }
         
@@ -246,6 +262,21 @@ class GeneratedConverter
     }
 
     /**
+     * Convert Block to BlockNode
+     */
+    private function convertBlock(array $data): \PESM\Parser\AST\BlockNode
+    {
+        $stmts = [];
+        if (isset($data['statements'])) {
+            foreach ($data['statements'] as $stmt) {
+                $node = isset($stmt['node']) ? $stmt['node'] : $stmt;
+                $stmts[] = $this->convert($node);
+            }
+        }
+        return new \PESM\Parser\AST\BlockNode($stmts);
+    }
+
+    /**
      * Convert IfStatement to IfNode
      */
     private function convertIfStatement(array $data): \PESM\Parser\AST\IfNode
@@ -253,16 +284,27 @@ class GeneratedConverter
         $cond = $this->convert($data['cond']['value'] ?? $data['cond']);
         $thenBody = [];
         if (isset($data['thenBody'])) {
-            foreach ($data['thenBody'] as $stmt) {
-                $node = isset($stmt['node']) ? $stmt['node'] : $stmt;
-                $thenBody[] = $this->convert($node);
+            foreach ($data['thenBody'] as $item) {
+                // Check if it's a Block node
+                if (isset($item['_matchrule']) && $item['_matchrule'] === 'Block') {
+                    $blockNode = $this->convert($item);
+                    $thenBody = array_merge($thenBody, $blockNode->statements);
+                } else {
+                    $node = isset($item['node']) ? $item['node'] : $item;
+                    $thenBody[] = $this->convert($node);
+                }
             }
         }
         $elseBody = [];
         if (isset($data['elseBody'])) {
-            foreach ($data['elseBody'] as $stmt) {
-                $node = isset($stmt['node']) ? $stmt['node'] : $stmt;
-                $elseBody[] = $this->convert($node);
+            foreach ($data['elseBody'] as $item) {
+                if (isset($item['_matchrule']) && $item['_matchrule'] === 'Block') {
+                    $blockNode = $this->convert($item);
+                    $elseBody = array_merge($elseBody, $blockNode->statements);
+                } else {
+                    $node = isset($item['node']) ? $item['node'] : $item;
+                    $elseBody[] = $this->convert($node);
+                }
             }
         }
         return new \PESM\Parser\AST\IfNode($cond, $thenBody, $elseBody);
