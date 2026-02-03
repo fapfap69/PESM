@@ -660,7 +660,7 @@ function match_ReturnStmt($stack = []) {
 }
 
 
-/* Assignment: var:Identifier _ "=" _ expr:Expression */
+/* Assignment: var:Postfix _ "=" _ expr:Expression */
 protected $match_Assignment_typestack = ['Assignment'];
 function match_Assignment($stack = []) {
 	$matchrule = 'Assignment';
@@ -668,7 +668,7 @@ function match_Assignment($stack = []) {
 	$result = $this->construct($matchrule, $matchrule);
 	$_117 = \null;
 	do {
-		$key = 'match_'.'Identifier'; $pos = $this->pos;
+		$key = 'match_'.'Postfix'; $pos = $this->pos;
 		$subres = $this->packhas($key, $pos)
 			? $this->packread($key, $pos)
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));

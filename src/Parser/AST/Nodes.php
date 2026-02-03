@@ -43,7 +43,7 @@ class VariableNode extends Node {
 // Assignment Node
 class AssignmentNode extends Node {
     public function __construct(
-        public string $variable,
+        public string|Node $target,
         public Node $expression
     ) {
         parent::__construct();
@@ -51,12 +51,60 @@ class AssignmentNode extends Node {
     
     public function execute($context, $flow, $commands, $pc = null) {
         $value = $this->expression->execute($context, $flow, $commands, $pc);
-        $context->set($this->variable, $value);
-        return $value;
+        
+        // Simple variable assignment
+        if (is_string($this->target)) {
+            $context->set($this->target, $value);
+            return $value;
+        }
+        
+        // Array access assignment: arr[idx] = value
+        if ($this->target instanceof ArrayAccessNode) {
+            // Get base variable name
+            $varName = $this->getBaseVariableName($this->target->array);
+            if (!$varName) {
+                throw new \Exception("Cannot assign to complex expression");
+            }
+            
+            // Get current array value
+            $arr = $context->get($varName);
+            if (!is_array($arr)) {
+                $arr = [];
+            }
+            
+            // Get index
+            $idx = $this->target->index->execute($context, $flow, $commands, $pc);
+            
+            // Simple case: arr[idx] = value
+            if ($this->target->array instanceof VariableNode) {
+                $arr[$idx] = $value;
+                $context->set($varName, $arr);
+                return $value;
+            }
+            
+            // Nested case: arr[i][j] = value - not yet supported
+            throw new \Exception("Nested array assignment not yet supported");
+        }
+        
+        throw new \Exception("Invalid assignment target");
+    }
+    
+    private function getBaseVariableName(Node $node): ?string {
+        if ($node instanceof VariableNode) {
+            return $node->name;
+        }
+        if ($node instanceof ArrayAccessNode) {
+            return $this->getBaseVariableName($node->array);
+        }
+        return null;
     }
     
     public function getChildren(): array {
-        return [$this->expression];
+        $children = [$this->expression];
+        if ($this->target instanceof Node) {
+            $children[] = $this->target;
+        }
+        return $children;
     }
 }
 

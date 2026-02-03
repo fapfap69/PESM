@@ -173,7 +173,9 @@ class GeneratedConverter
         $varNode = $this->convert($data['var']);
         $exprNode = $data['expr']['value'] ?? $data['expr'];
         $exprNode = $this->convert($exprNode);
-        return new \PESM\Parser\AST\AssignmentNode($varNode->name, $exprNode);
+        // Support both simple variable and array access as lvalue
+        $target = ($varNode instanceof \PESM\Parser\AST\VariableNode) ? $varNode->name : $varNode;
+        return new \PESM\Parser\AST\AssignmentNode($target, $exprNode);
     }
 
     /**

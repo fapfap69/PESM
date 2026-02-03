@@ -215,7 +215,9 @@ PHP;
             $code .= "        \$varNode = \$this->convert(\$data['var']);\n";
             $code .= "        \$exprNode = \$data['expr']['value'] ?? \$data['expr'];\n";
             $code .= "        \$exprNode = \$this->convert(\$exprNode);\n";
-            $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$varNode->name, \$exprNode);\n";
+            $code .= "        // Support both simple variable and array access as lvalue\n";
+            $code .= "        \$target = (\$varNode instanceof \\PESM\\Parser\\AST\\VariableNode) ? \$varNode->name : \$varNode;\n";
+            $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$target, \$exprNode);\n";
             $code .= "    }\n\n";
             return $code;
         }
