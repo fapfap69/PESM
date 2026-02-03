@@ -41,6 +41,11 @@ class ProgramNode extends Node {
                 continue;
             }
             
+            // Clear resume point dopo aver skippato fino al punto di resume
+            if ($pc && $pc->getResumePoint() !== null && $stmt->id > $pc->getResumePoint()) {
+                $pc->clearResumePoint();
+            }
+            
             if ($pc) $pc->setCurrentNode($stmt->id);
             
             $stmt->execute($context, $flow, $commands, $pc);
@@ -55,6 +60,7 @@ class ProgramNode extends Node {
                 }
                 
                 $i = $labels[$label];
+                // Non fare $i++ perché vogliamo eseguire lo statement alla label
                 continue;
             }
             
