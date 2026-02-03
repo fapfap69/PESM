@@ -159,31 +159,10 @@ class GeneratedConverter
     {
         $cond = $this->convert($data['cond']['value'] ?? $data['cond']);
         $thenBody = [];
-        if (isset($data['thenBody'])) {
-            foreach ($data['thenBody'] as $item) {
-                // Check if it's a Block node
-                if (isset($item['_matchrule']) && $item['_matchrule'] === 'Block') {
-                    $blockNode = $this->convert($item);
-                    $thenBody = array_merge($thenBody, $blockNode->statements);
-                } else {
-                    $node = isset($item['node']) ? $item['node'] : $item;
-                    $thenBody[] = $this->convert($node);
-                }
-            }
+        if (isset($data['stmt'])) {
+            $thenBody[] = $this->convert($data['stmt']);
         }
-        $elseBody = [];
-        if (isset($data['elseBody'])) {
-            foreach ($data['elseBody'] as $item) {
-                if (isset($item['_matchrule']) && $item['_matchrule'] === 'Block') {
-                    $blockNode = $this->convert($item);
-                    $elseBody = array_merge($elseBody, $blockNode->statements);
-                } else {
-                    $node = isset($item['node']) ? $item['node'] : $item;
-                    $elseBody[] = $this->convert($node);
-                }
-            }
-        }
-        return new \PESM\Parser\AST\IfNode($cond, $thenBody, $elseBody);
+        return new \PESM\Parser\AST\IfNode($cond, $thenBody, []);
     }
 
     /**

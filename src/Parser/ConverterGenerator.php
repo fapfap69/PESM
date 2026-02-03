@@ -241,6 +241,18 @@ PHP;
         // Special case for IfStatement or IfStmt (BASIC)
         if ($rule === 'IfStatement' || $rule === 'IfStmt') {
             $code .= "        \$cond = \$this->convert(\$data['cond']['value'] ?? \$data['cond']);\n";
+            
+            // BASIC IfStmt has single stmt, PESM IfStatement has thenBody array
+            if ($rule === 'IfStmt') {
+                $code .= "        \$thenBody = [];\n";
+                $code .= "        if (isset(\$data['stmt'])) {\n";
+                $code .= "            \$thenBody[] = \$this->convert(\$data['stmt']);\n";
+                $code .= "        }\n";
+                $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$cond, \$thenBody, []);\n";
+                $code .= "    }\n\n";
+                return $code;
+            }
+            $code .= "        \$cond = \$this->convert(\$data['cond']['value'] ?? \$data['cond']);\n";
             $code .= "        \$thenBody = [];\n";
             $code .= "        if (isset(\$data['thenBody'])) {\n";
             $code .= "            foreach (\$data['thenBody'] as \$item) {\n";
