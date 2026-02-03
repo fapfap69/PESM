@@ -177,6 +177,20 @@ PHP;
         }
         $code .= "    {\n";
         
+        // Special case for Program (ProgramNode)
+        if ($rule === 'Program') {
+            $code .= "        \$stmts = [];\n";
+            $code .= "        if (isset(\$data['statements'])) {\n";
+            $code .= "            foreach (\$data['statements'] as \$stmt) {\n";
+            $code .= "                \$node = isset(\$stmt['node']) ? \$stmt['node'] : \$stmt;\n";
+            $code .= "                \$stmts[] = \$this->convert(\$node);\n";
+            $code .= "            }\n";
+            $code .= "        }\n";
+            $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$stmts);\n";
+            $code .= "    }\n\n";
+            return $code;
+        }
+        
         // Special case for FunctionDef
         if ($rule === 'FunctionDef') {
             $code .= "        \$nameNode = \$this->convert(\$data['fname']);\n";
