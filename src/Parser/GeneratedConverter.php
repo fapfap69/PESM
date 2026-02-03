@@ -14,6 +14,7 @@ use PESM\Parser\AST\AssignmentNode;
 use PESM\Parser\AST\ArrayAccessNode;
 use PESM\Parser\AST\UnaryOpNode;
 use PESM\Parser\AST\ArrayLiteralNode;
+use PESM\Parser\AST\ObjectLiteralNode;
 use PESM\Parser\AST\FunctionCallNode;
 use PESM\Parser\AST\LiteralNode;
 use PESM\Parser\AST\VariableNode;
@@ -220,6 +221,22 @@ class GeneratedConverter
             }
         }
         return new \PESM\Parser\AST\ArrayLiteralNode($elements);
+    }
+
+    /**
+     * Convert ObjectLiteral to ObjectLiteralNode
+     */
+    private function convertObjectLiteral(array $data): \PESM\Parser\AST\ObjectLiteralNode
+    {
+        $pairs = [];
+        if (isset($data['pairs']['pairs']) && is_array($data['pairs']['pairs'])) {
+            foreach ($data['pairs']['pairs'] as $pair) {
+                $keyNode = $this->convert($pair['key']);
+                $valueNode = $this->convert($pair['value']);
+                $pairs[] = ['key' => $keyNode, 'value' => $valueNode];
+            }
+        }
+        return new \PESM\Parser\AST\ObjectLiteralNode($pairs);
     }
 
     /**

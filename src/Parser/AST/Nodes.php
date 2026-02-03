@@ -143,6 +143,34 @@ class ArrayLiteralNode extends Node {
     }
 }
 
+// Object Literal Node
+class ObjectLiteralNode extends Node {
+    public function __construct(
+        public array $pairs = []  // [['key' => Node, 'value' => Node], ...]
+    ) {
+        parent::__construct();
+    }
+    
+    public function execute($context, $flow, $commands, $pc = null) {
+        $result = [];
+        foreach ($this->pairs as $pair) {
+            $key = $pair['key']->execute($context, $flow, $commands, $pc);
+            $value = $pair['value']->execute($context, $flow, $commands, $pc);
+            $result[$key] = $value;
+        }
+        return $result;
+    }
+    
+    public function getChildren(): array {
+        $children = [];
+        foreach ($this->pairs as $pair) {
+            $children[] = $pair['key'];
+            $children[] = $pair['value'];
+        }
+        return $children;
+    }
+}
+
 // Block Node - Generic statement container for {}, BEGIN/END
 class BlockNode extends Node {
     public function __construct(

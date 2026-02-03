@@ -120,7 +120,7 @@ Unary: op:UnaryOp _ expr:Unary | val:Primary
 
 UnaryOp: "NOT" | "-" | "+"
 
-Primary: val:ArrayLiteral | val:FunctionCall | val:String | val:Number | val:Identifier | "(" _ val:Expression _ ")"
+Primary: val:ObjectLiteral | val:ArrayLiteral | val:FunctionCall | val:String | val:Number | val:Identifier | "(" _ val:Expression _ ")"
   function val(&$res, $sub) {
     $res['value'] = $sub;
   }
@@ -133,6 +133,17 @@ ArrayElements: elem:Expression ( _ "," _ elem:Expression )*
     if (!isset($res['elements'])) $res['elements'] = [];
     $res['elements'][] = $sub;
   }
+
+#node(ObjectLiteralNode)
+ObjectLiteral: "{" _ pairs:ObjectPairs? _ "}"
+
+ObjectPairs: pair:ObjectPair ( _ "," _ pair:ObjectPair )*
+  function pair(&$res, $sub) {
+    if (!isset($res['pairs'])) $res['pairs'] = [];
+    $res['pairs'][] = $sub;
+  }
+
+ObjectPair: key:String _ ":" _ value:Expression
 
 #node(FunctionCallNode)
 FunctionCall: fname:Identifier _ "(" _ args:ArgumentList? _ ")"

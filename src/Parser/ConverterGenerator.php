@@ -330,6 +330,21 @@ PHP;
             return $code;
         }
         
+        // Special case for ObjectLiteral
+        if ($rule === 'ObjectLiteral') {
+            $code .= "        \$pairs = [];\n";
+            $code .= "        if (isset(\$data['pairs']['pairs']) && is_array(\$data['pairs']['pairs'])) {\n";
+            $code .= "            foreach (\$data['pairs']['pairs'] as \$pair) {\n";
+            $code .= "                \$keyNode = \$this->convert(\$pair['key']);\n";
+            $code .= "                \$valueNode = \$this->convert(\$pair['value']);\n";
+            $code .= "                \$pairs[] = ['key' => \$keyNode, 'value' => \$valueNode];\n";
+            $code .= "            }\n";
+            $code .= "        }\n";
+            $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$pairs);\n";
+            $code .= "    }\n\n";
+            return $code;
+        }
+        
         // Special case for Block
         if ($rule === 'Block') {
             $code .= "        \$stmts = [];\n";
