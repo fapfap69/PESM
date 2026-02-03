@@ -34,10 +34,15 @@ GotoStmt: "GOTO" _ label:Identifier
 LabelStmt: label:Identifier _ ":"
 
 #node(ForeachNode)
-ForStmt: "FOR" _ var:Identifier _ "=" _ from:Expression _ "TO" _ to:Expression _ body:Statement+ "END"
+ForStmt: "FOR" _ var:Identifier _ "=" _ from:Expression _ "TO" _ to:Expression _ body:ForBody ( _ body:ForBody )* _ "END"
   function body(&$res, $sub) {
     if (!isset($res['loopBody'])) $res['loopBody'] = [];
     $res['loopBody'][] = $sub;
+  }
+
+ForBody: alt:LetStmt | alt:PrintStmt | alt:InputStmt | alt:IfStmt | alt:GotoStmt | alt:LabelStmt
+  function alt(&$res, $sub) {
+    $res['node'] = $sub;
   }
 
 EndStmt: "END"

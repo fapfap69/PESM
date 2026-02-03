@@ -28,7 +28,12 @@ class GeneratedConverter
             throw new \Exception("Invalid parse result");
         }
         
-        // Unwrap Statement to alt if present
+        // Unwrap Statement to node if present
+        if (isset($data['_matchrule']) && $data['_matchrule'] === 'Statement' && isset($data['node'])) {
+            $data = $data['node'];
+        }
+        
+        // Unwrap Statement to alt if present (PESM style)
         if (isset($data['_matchrule']) && $data['_matchrule'] === 'Statement' && isset($data['alt'])) {
             $data = $data['alt'];
         }
@@ -114,8 +119,7 @@ class GeneratedConverter
         $stmts = [];
         if (isset($data['statements'])) {
             foreach ($data['statements'] as $stmt) {
-                $node = isset($stmt['node']) ? $stmt['node'] : $stmt;
-                $stmts[] = $this->convert($node);
+                $stmts[] = $this->convert($stmt);
             }
         }
         return new \PESM\Parser\AST\ProgramNode($stmts);
@@ -238,7 +242,12 @@ class GeneratedConverter
         if (isset($data['_matchrule'])) {
             $type = $data['_matchrule'];
             
-            // If it's Statement (choice without node), unwrap to alt
+            // If it's Statement with node (BASIC style), unwrap to node
+            if ($type === 'Statement' && isset($data['node'])) {
+                return $this->detectType($data['node']);
+            }
+            
+            // If it's Statement with alt (PESM style), unwrap to alt
             if ($type === 'Statement' && isset($data['alt'])) {
                 return $this->detectType($data['alt']);
             }

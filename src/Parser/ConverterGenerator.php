@@ -75,7 +75,12 @@ PHP;
             throw new \Exception("Invalid parse result");
         }
         
-        // Unwrap Statement to alt if present
+        // Unwrap Statement to node if present
+        if (isset($data['_matchrule']) && $data['_matchrule'] === 'Statement' && isset($data['node'])) {
+            $data = $data['node'];
+        }
+        
+        // Unwrap Statement to alt if present (PESM style)
         if (isset($data['_matchrule']) && $data['_matchrule'] === 'Statement' && isset($data['alt'])) {
             $data = $data['alt'];
         }
@@ -182,8 +187,7 @@ PHP;
             $code .= "        \$stmts = [];\n";
             $code .= "        if (isset(\$data['statements'])) {\n";
             $code .= "            foreach (\$data['statements'] as \$stmt) {\n";
-            $code .= "                \$node = isset(\$stmt['node']) ? \$stmt['node'] : \$stmt;\n";
-            $code .= "                \$stmts[] = \$this->convert(\$node);\n";
+            $code .= "                \$stmts[] = \$this->convert(\$stmt);\n";
             $code .= "            }\n";
             $code .= "        }\n";
             $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}(\$stmts);\n";
@@ -549,7 +553,12 @@ PHP;
         if (isset($data['_matchrule'])) {
             $type = $data['_matchrule'];
             
-            // If it's Statement (choice without node), unwrap to alt
+            // If it's Statement with node (BASIC style), unwrap to node
+            if ($type === 'Statement' && isset($data['node'])) {
+                return $this->detectType($data['node']);
+            }
+            
+            // If it's Statement with alt (PESM style), unwrap to alt
             if ($type === 'Statement' && isset($data['alt'])) {
                 return $this->detectType($data['alt']);
             }
