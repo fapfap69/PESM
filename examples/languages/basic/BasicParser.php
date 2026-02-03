@@ -480,7 +480,7 @@ function match_LabelStmt($stack = []) {
 }
 
 
-/* ForStmt: "FOR" _ var:Identifier _ "=" _ from:Expression _ "TO" _ to:Expression _ body:ForBody ( _ body:ForBody )* _ "END" */
+/* ForStmt: "FOR" _ var:Identifier _ "=" _ from:Expression _ "TO" _ to:Expression _ body:ForBody ( _ body:ForBody )* _ "NEXT" */
 protected $match_ForStmt_typestack = ['ForStmt'];
 function match_ForStmt($stack = []) {
 	$matchrule = 'ForStmt';
@@ -600,7 +600,7 @@ function match_ForStmt($stack = []) {
 			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
 		if ($subres !== \false) { $this->store($result, $subres); }
 		else { $_95 = \false; break; }
-		if (($subres = $this->literal('END')) !== \false) { $result["text"] .= $subres; }
+		if (($subres = $this->literal('NEXT')) !== \false) { $result["text"] .= $subres; }
 		else { $_95 = \false; break; }
 		$_95 = \true; break;
 	}
