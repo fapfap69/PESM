@@ -1,0 +1,84 @@
+/*!* PEGParser
+
+# Assembly-like Language Grammar
+
+#node(ProgramNode)
+Program: _ stmt:Statement+
+  function stmt(&$res, $sub) {
+    if (!isset($res['statements'])) $res['statements'] = [];
+    $res['statements'][] = $sub;
+  }
+
+Statement: alt:LabelStmt _ | alt:MovStmt _ | alt:AddStmt _ | alt:SubStmt _ | alt:MulStmt _ | alt:CmpStmt _ | alt:JmpStmt _ | alt:JeStmt _ | alt:JneStmt _ | alt:JgStmt _ | alt:OutStmt _
+  function alt(&$res, $sub) {
+    $res['node'] = $sub;
+  }
+
+#node(LabelNode)
+LabelStmt: label:Identifier _ ":"
+
+#node(AssignmentNode)
+MovStmt: "MOV" _ var:Identifier _ "," _ expr:Expression
+
+#node(AssignmentNode)
+AddStmt: "ADD" _ var:Identifier _ "," _ expr:Expression
+
+#node(AssignmentNode)
+SubStmt: "SUB" _ var:Identifier _ "," _ expr:Expression
+
+#node(AssignmentNode)
+MulStmt: "MUL" _ var:Identifier _ "," _ expr:Expression
+
+CmpStmt: "CMP" _ left:Identifier _ "," _ right:Expression
+
+#node(GotoNode)
+JmpStmt: "JMP" _ label:Identifier
+
+#node(IfNode)
+JeStmt: "JE" _ label:Identifier
+
+#node(IfNode)
+JneStmt: "JNE" _ label:Identifier
+
+#node(IfNode)
+JgStmt: "JG" _ label:Identifier
+
+#node(InterruptNode)
+OutStmt: "OUT" _ msg:Expression
+
+Expression: val:Additive
+  function val(&$res, $sub) {
+    $res['value'] = $sub;
+  }
+
+Additive: left:Primary ( _ op:AddOp _ right:Primary )*
+  function left(&$res, $sub) {
+    $res['left'] = $sub;
+  }
+  function op(&$res, $sub) {
+    if (!isset($res['ops'])) $res['ops'] = [];
+    $res['ops'][] = $sub;
+  }
+  function right(&$res, $sub) {
+    if (!isset($res['rights'])) $res['rights'] = [];
+    $res['rights'][] = $sub;
+  }
+
+AddOp: "+" | "-"
+
+Primary: val:Number | val:Identifier
+  function val(&$res, $sub) {
+    $res['value'] = $sub;
+  }
+
+#node(LiteralNode)
+Number: /[0-9]+/
+
+#node(VariableNode)
+Identifier: !Keyword /[A-Z][A-Z0-9]{0,}/
+
+Keyword: ("MOV" | "ADD" | "SUB" | "MUL" | "CMP" | "JMP" | "JE" | "JNE" | "JG" | "OUT") !(/[A-Z0-9]/)
+
+_: /[ \\t\\n\\r]{0,}/
+
+*/

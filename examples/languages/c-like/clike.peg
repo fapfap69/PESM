@@ -1,0 +1,153 @@
+/*!* PEGParser
+
+# C-like Language Grammar
+
+#node(ProgramNode)
+Program: _ stmt:Statement+
+  function stmt(&$res, $sub) {
+    if (!isset($res['statements'])) $res['statements'] = [];
+    $res['statements'][] = $sub;
+  }
+
+Statement: alt:Block _ | alt:IfStmt _ | alt:WhileStmt _ | alt:Assignment _ ";" _ | alt:PrintStmt _ ";" _
+  function alt(&$res, $sub) {
+    $res['node'] = $sub;
+  }
+
+#node(BlockNode)
+Block: "{" _ stmts:Statement* _ "}"
+  function stmts(&$res, $sub) {
+    if (!isset($res['statements'])) $res['statements'] = [];
+    $res['statements'][] = $sub;
+  }
+
+#node(AssignmentNode)
+Assignment: var:Postfix _ "=" _ expr:Expression
+
+#node(IfNode)
+IfStmt: "if" _ "(" _ cond:Expression _ ")" _ body:Statement ( _ "else" _ else:Statement )?
+  function body(&$res, $sub) {
+    if (!isset($res['thenBody'])) $res['thenBody'] = [];
+    $res['thenBody'][] = $sub;
+  }
+  function else(&$res, $sub) {
+    if (!isset($res['elseBody'])) $res['elseBody'] = [];
+    $res['elseBody'][] = $sub;
+  }
+
+#node(WhileNode)
+WhileStmt: "while" _ "(" _ cond:Expression _ ")" _ body:Statement
+  function body(&$res, $sub) {
+    if (!isset($res['loopBody'])) $res['loopBody'] = [];
+    $res['loopBody'][] = $sub;
+  }
+
+#node(InterruptNode)
+PrintStmt: "print" _ "(" _ msg:Expression _ ")"
+
+Expression: val:Logical
+  function val(&$res, $sub) {
+    $res['value'] = $sub;
+  }
+
+Logical: left:Comparison ( _ op:LogicalOp _ right:Comparison )*
+  function left(&$res, $sub) {
+    $res['left'] = $sub;
+  }
+  function op(&$res, $sub) {
+    if (!isset($res['ops'])) $res['ops'] = [];
+    $res['ops'][] = $sub;
+  }
+  function right(&$res, $sub) {
+    if (!isset($res['rights'])) $res['rights'] = [];
+    $res['rights'][] = $sub;
+  }
+
+LogicalOp: "&&" | "||"
+
+Comparison: left:Additive ( _ op:CompOp _ right:Additive )*
+  function left(&$res, $sub) {
+    $res['left'] = $sub;
+  }
+  function op(&$res, $sub) {
+    if (!isset($res['ops'])) $res['ops'] = [];
+    $res['ops'][] = $sub;
+  }
+  function right(&$res, $sub) {
+    if (!isset($res['rights'])) $res['rights'] = [];
+    $res['rights'][] = $sub;
+  }
+
+CompOp: "==" | "!=" | "<=" | ">=" | "<" | ">"
+
+Additive: left:Multiplicative ( _ op:AddOp _ right:Multiplicative )*
+  function left(&$res, $sub) {
+    $res['left'] = $sub;
+  }
+  function op(&$res, $sub) {
+    if (!isset($res['ops'])) $res['ops'] = [];
+    $res['ops'][] = $sub;
+  }
+  function right(&$res, $sub) {
+    if (!isset($res['rights'])) $res['rights'] = [];
+    $res['rights'][] = $sub;
+  }
+
+AddOp: "+" | "-"
+
+Multiplicative: left:Postfix ( _ op:MulOp _ right:Postfix )*
+  function left(&$res, $sub) {
+    $res['left'] = $sub;
+  }
+  function op(&$res, $sub) {
+    if (!isset($res['ops'])) $res['ops'] = [];
+    $res['ops'][] = $sub;
+  }
+  function right(&$res, $sub) {
+    if (!isset($res['rights'])) $res['rights'] = [];
+    $res['rights'][] = $sub;
+  }
+
+MulOp: "*" | "/"
+
+#node(ArrayAccessNode)
+Postfix: base:Primary ( _ "[" _ index:Expression _ "]" )*
+  function base(&$res, $sub) {
+    $res['base'] = $sub;
+  }
+  function index(&$res, $sub) {
+    if (!isset($res['indices'])) $res['indices'] = [];
+    $res['indices'][] = $sub;
+  }
+
+Primary: val:ArrayLiteral | val:String | val:Number | val:Identifier | "(" _ val:Expression _ ")"
+  function val(&$res, $sub) {
+    $res['value'] = $sub;
+  }
+
+#node(ArrayLiteralNode)
+ArrayLiteral: "[" _ elements:ArrayElements? _ "]"
+
+ArrayElements: elem:Expression ( _ "," _ elem:Expression )*
+  function elem(&$res, $sub) {
+    if (!isset($res['elements'])) $res['elements'] = [];
+    $res['elements'][] = $sub;
+  }
+
+#node(LiteralNode)
+String: '"' content:/[^"]{0,}/ '"'
+  function content(&$res, $sub) {
+    $res['value'] = $sub['text'];
+  }
+
+#node(LiteralNode)
+Number: /[0-9]+(\\.[0-9]+)?/
+
+#node(VariableNode)
+Identifier: !Keyword /[a-z_][a-z0-9_]{0,}/
+
+Keyword: ("if" | "else" | "while" | "print") !(/[a-z0-9_]/)
+
+_: /[ \\t\\n\\r]{0,}/
+
+*/

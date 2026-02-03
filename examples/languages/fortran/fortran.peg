@@ -1,0 +1,102 @@
+/*!* PEGParser
+
+# FORTRAN-like Language Grammar
+
+#node(ProgramNode)
+Program: _ stmt:Statement+
+  function stmt(&$res, $sub) {
+    if (!isset($res['statements'])) $res['statements'] = [];
+    $res['statements'][] = $sub;
+  }
+
+Statement: alt:Assignment _ | alt:IfStmt _ | alt:GotoStmt _ | alt:LabelStmt _ | alt:DoLoop _ | alt:Continue _ | alt:WriteStmt _
+  function alt(&$res, $sub) {
+    $res['node'] = $sub;
+  }
+
+#node(AssignmentNode)
+Assignment: var:Identifier _ "=" _ expr:Expression
+
+#node(IfNode)
+IfStmt: "IF" _ "(" _ cond:Expression _ ")" _ stmt:Statement
+
+#node(GotoNode)
+GotoStmt: "GOTO" _ label:Number
+
+#node(LabelNode)
+LabelStmt: label:Number
+
+#node(ForeachNode)
+DoLoop: "DO" _ var:Identifier _ "=" _ from:Expression _ "," _ to:Expression
+
+Continue: "CONTINUE"
+
+#node(InterruptNode)
+WriteStmt: "WRITE" _ "(" _ "*" _ "," _ "*" _ ")" _ msg:Expression
+
+Expression: val:Comparison
+  function val(&$res, $sub) {
+    $res['value'] = $sub;
+  }
+
+Comparison: left:Additive ( _ op:CompOp _ right:Additive )*
+  function left(&$res, $sub) {
+    $res['left'] = $sub;
+  }
+  function op(&$res, $sub) {
+    if (!isset($res['ops'])) $res['ops'] = [];
+    $res['ops'][] = $sub;
+  }
+  function right(&$res, $sub) {
+    if (!isset($res['rights'])) $res['rights'] = [];
+    $res['rights'][] = $sub;
+  }
+
+CompOp: ".EQ." | ".NE." | ".GT." | ".GE." | ".LT." | ".LE."
+
+Additive: left:Multiplicative ( _ op:AddOp _ right:Multiplicative )*
+  function left(&$res, $sub) {
+    $res['left'] = $sub;
+  }
+  function op(&$res, $sub) {
+    if (!isset($res['ops'])) $res['ops'] = [];
+    $res['ops'][] = $sub;
+  }
+  function right(&$res, $sub) {
+    if (!isset($res['rights'])) $res['rights'] = [];
+    $res['rights'][] = $sub;
+  }
+
+AddOp: "+" | "-"
+
+Multiplicative: left:Primary ( _ op:MulOp _ right:Primary )*
+  function left(&$res, $sub) {
+    $res['left'] = $sub;
+  }
+  function op(&$res, $sub) {
+    if (!isset($res['ops'])) $res['ops'] = [];
+    $res['ops'][] = $sub;
+  }
+  function right(&$res, $sub) {
+    if (!isset($res['rights'])) $res['rights'] = [];
+    $res['rights'][] = $sub;
+  }
+
+MulOp: "*" | "/"
+
+Primary: val:Number | val:Identifier | "(" _ val:Expression _ ")"
+  function val(&$res, $sub) {
+    $res['value'] = $sub;
+  }
+
+#node(LiteralNode)
+Number: /[0-9]+(\\.[0-9]+)?/
+
+#node(VariableNode)
+Identifier: !Keyword /[A-Z][A-Z0-9]{0,}/
+
+Keyword: ("IF" | "GOTO" | "DO" | "CONTINUE" | "WRITE") !(/[A-Z0-9]/)
+
+_: /[ \\t\\n\\r]{0,}/
+
+*/

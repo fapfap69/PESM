@@ -1,0 +1,161 @@
+/*!* PEGParser
+
+# Python-like Language (without indentation)
+
+#node(ProgramNode)
+Program: _ stmt:Statement+
+  function stmt(&$res, $sub) {
+    if (!isset($res['statements'])) $res['statements'] = [];
+    $res['statements'][] = $sub;
+  }
+
+Statement: alt:IfStmt _ | alt:WhileStmt _ | alt:ForStmt _ | alt:Assignment _
+  function alt(&$res, $sub) {
+    $res['node'] = $sub;
+  }
+
+#node(AssignmentNode)
+Assignment: var:Postfix _ "=" _ expr:Expression
+
+#node(IfNode)
+IfStmt: "if" _ cond:Expression _ ":" _ body:Statement+ ( _ "else" _ ":" _ else:Statement+ )? ( _ "end" )
+  function body(&$res, $sub) {
+    if (!isset($res['thenBody'])) $res['thenBody'] = [];
+    $res['thenBody'][] = $sub;
+  }
+  function else(&$res, $sub) {
+    if (!isset($res['elseBody'])) $res['elseBody'] = [];
+    $res['elseBody'][] = $sub;
+  }
+
+#node(WhileNode)
+WhileStmt: "while" _ cond:Expression _ ":" _ body:Statement+ "end"
+  function body(&$res, $sub) {
+    if (!isset($res['loopBody'])) $res['loopBody'] = [];
+    $res['loopBody'][] = $sub;
+  }
+
+#node(ForeachNode)
+ForStmt: "for" _ var:Identifier _ "in" _ "range" _ "(" _ from:Expression _ "," _ to:Expression _ ")" _ ":" _ body:Statement+ "end"
+  function body(&$res, $sub) {
+    if (!isset($res['loopBody'])) $res['loopBody'] = [];
+    $res['loopBody'][] = $sub;
+  }
+
+Expression: val:Logical
+  function val(&$res, $sub) {
+    $res['value'] = $sub;
+  }
+
+Logical: left:Comparison ( _ op:LogicalOp _ right:Comparison )*
+  function left(&$res, $sub) {
+    $res['left'] = $sub;
+  }
+  function op(&$res, $sub) {
+    if (!isset($res['ops'])) $res['ops'] = [];
+    $res['ops'][] = $sub;
+  }
+  function right(&$res, $sub) {
+    if (!isset($res['rights'])) $res['rights'] = [];
+    $res['rights'][] = $sub;
+  }
+
+LogicalOp: "and" | "or"
+
+Comparison: left:Additive ( _ op:CompOp _ right:Additive )*
+  function left(&$res, $sub) {
+    $res['left'] = $sub;
+  }
+  function op(&$res, $sub) {
+    if (!isset($res['ops'])) $res['ops'] = [];
+    $res['ops'][] = $sub;
+  }
+  function right(&$res, $sub) {
+    if (!isset($res['rights'])) $res['rights'] = [];
+    $res['rights'][] = $sub;
+  }
+
+CompOp: "==" | "!=" | "<=" | ">=" | "<" | ">"
+
+Additive: left:Multiplicative ( _ op:AddOp _ right:Multiplicative )*
+  function left(&$res, $sub) {
+    $res['left'] = $sub;
+  }
+  function op(&$res, $sub) {
+    if (!isset($res['ops'])) $res['ops'] = [];
+    $res['ops'][] = $sub;
+  }
+  function right(&$res, $sub) {
+    if (!isset($res['rights'])) $res['rights'] = [];
+    $res['rights'][] = $sub;
+  }
+
+AddOp: "+" | "-"
+
+Multiplicative: left:Postfix ( _ op:MulOp _ right:Postfix )*
+  function left(&$res, $sub) {
+    $res['left'] = $sub;
+  }
+  function op(&$res, $sub) {
+    if (!isset($res['ops'])) $res['ops'] = [];
+    $res['ops'][] = $sub;
+  }
+  function right(&$res, $sub) {
+    if (!isset($res['rights'])) $res['rights'] = [];
+    $res['rights'][] = $sub;
+  }
+
+MulOp: "*" | "/"
+
+#node(ArrayAccessNode)
+Postfix: base:Primary ( _ "[" _ index:Expression _ "]" )*
+  function base(&$res, $sub) {
+    $res['base'] = $sub;
+  }
+  function index(&$res, $sub) {
+    if (!isset($res['indices'])) $res['indices'] = [];
+    $res['indices'][] = $sub;
+  }
+
+Primary: val:ArrayLiteral | val:DictLiteral | val:String | val:Number | val:Identifier | "(" _ val:Expression _ ")"
+  function val(&$res, $sub) {
+    $res['value'] = $sub;
+  }
+
+#node(ArrayLiteralNode)
+ArrayLiteral: "[" _ elements:ArrayElements? _ "]"
+
+ArrayElements: elem:Expression ( _ "," _ elem:Expression )*
+  function elem(&$res, $sub) {
+    if (!isset($res['elements'])) $res['elements'] = [];
+    $res['elements'][] = $sub;
+  }
+
+#node(ObjectLiteralNode)
+DictLiteral: "{" _ pairs:DictPairs? _ "}"
+
+DictPairs: pair:DictPair ( _ "," _ pair:DictPair )*
+  function pair(&$res, $sub) {
+    if (!isset($res['pairs'])) $res['pairs'] = [];
+    $res['pairs'][] = $sub;
+  }
+
+DictPair: key:String _ ":" _ value:Expression
+
+#node(LiteralNode)
+String: '"' content:/[^"]{0,}/ '"' | "'" content:/[^']{0,}/ "'"
+  function content(&$res, $sub) {
+    $res['value'] = $sub['text'];
+  }
+
+#node(LiteralNode)
+Number: /[0-9]+(\\.[0-9]+)?/
+
+#node(VariableNode)
+Identifier: !Keyword /[a-z_][a-z0-9_]{0,}/
+
+Keyword: ("if" | "else" | "while" | "for" | "in" | "range" | "and" | "or" | "end") !(/[a-z0-9_]/)
+
+_: /[ \\t\\n\\r]{0,}/
+
+*/
