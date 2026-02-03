@@ -10,7 +10,7 @@ Program: _ stmt:Statement ( _ stmt:Statement )* _
     $res['statements'][] = $sub;
   }
 
-Statement: alt:LetStmt | alt:PrintStmt | alt:InputStmt | alt:IfStmt | alt:GotoStmt | alt:LabelStmt | alt:ForStmt | alt:NextStmt | alt:EndStmt
+Statement: alt:LetStmt | alt:PrintStmt | alt:InputStmt | alt:IfStmt | alt:GotoStmt | alt:LabelStmt | alt:ForStmt | alt:EndStmt
   function alt(&$res, $sub) {
     $res['node'] = $sub;
   }
@@ -34,9 +34,11 @@ GotoStmt: "GOTO" _ label:Identifier
 LabelStmt: label:Identifier _ ":"
 
 #node(ForeachNode)
-ForStmt: "FOR" _ var:Identifier _ "=" _ from:Expression _ "TO" _ to:Expression
-
-NextStmt: "NEXT" _ var:Identifier?
+ForStmt: "FOR" _ var:Identifier _ "=" _ from:Expression _ "TO" _ to:Expression _ body:Statement+ "END"
+  function body(&$res, $sub) {
+    if (!isset($res['loopBody'])) $res['loopBody'] = [];
+    $res['loopBody'][] = $sub;
+  }
 
 EndStmt: "END"
 
