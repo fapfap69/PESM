@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PESM Script Executor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background: #2c3e50; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+        .header h1 { font-size: 24px; margin-bottom: 5px; }
+        .header p { opacity: 0.8; font-size: 14px; }
+        .content { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .panel { background: #f8f9fa; border-radius: 6px; padding: 15px; }
+        .panel h2 { font-size: 16px; margin-bottom: 10px; color: #2c3e50; }
+        textarea { width: 100%; height: 300px; font-family: 'Courier New', monospace; font-size: 13px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; }
+        .output { background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 4px; min-height: 300px; font-family: 'Courier New', monospace; font-size: 13px; white-space: pre-wrap; }
+        .controls { display: flex; gap: 10px; margin-top: 10px; }
+        button { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        button:hover { background: #2980b9; }
+        .file-input { display: none; }
+        .file-label { background: #95a5a6; color: white; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; display: inline-block; }
+        .file-label:hover { background: #7f8c8d; }
+        .status { padding: 10px; border-radius: 4px; margin-top: 10px; }
+        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status.interrupted { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .interrupt-panel { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin-top: 10px; }
+        .interrupt-panel h3 { font-size: 14px; margin-bottom: 10px; color: #856404; }
+        .interrupt-panel input { width: 100%; padding: 8px; border: 1px solid #ffeaa7; border-radius: 4px; margin-bottom: 10px; }
+        .interrupt-panel button { background: #f39c12; }
+        .interrupt-panel button:hover { background: #e67e22; }
+        .examples { padding: 15px; background: #ecf0f1; border-radius: 4px; margin-top: 10px; }
+        .examples h3 { font-size: 14px; margin-bottom: 10px; }
+        .examples button { background: #34495e; font-size: 12px; padding: 6px 12px; margin: 2px; }
+        .examples button:hover { background: #2c3e50; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 PESM Script Executor</h1>
+            <p>PHP Embedded Scripts Manager - Web Interface</p>
+        </div>
+        
+        <div class="content">
+            <div class="panel">
+                <h2>📝 Script Input</h2>
+                <textarea id="scriptInput" placeholder="Scrivi o carica uno script PESM...">x = 10
+y = 20
+sum = x + y
+MESSAGE "Calcolo completato"</textarea>
+                
+                <div class="controls">
+                    <button onclick="executeScript()">▶ Esegui</button>
+                    <label class="file-label" for="fileInput">📁 Carica File</label>
+                    <input type="file" id="fileInput" class="file-input" accept=".pesm,.txt" onchange="loadFile(event)">
+                    <button onclick="clearScript()" style="background: #e74c3c;">🗑 Pulisci</button>
+                </div>
+                
+                <div class="examples">
+                    <h3>Esempi rapidi:</h3>
+                    <button onclick="loadExample('factorial')">Fattoriale</button>
+                    <button onclick="loadExample('fibonacci')">Fibonacci</button>
+                    <button onclick="loadExample('array')">Array</button>
+                    <button onclick="loadExample('object')">Object</button>
+                    <button onclick="loadExample('workflow')">Workflow</button>
+                    <button onclick="loadExample('interrupt')">Interrupt/Resume</button>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>📊 Output</h2>
+                <div id="output" class="output">In attesa di esecuzione...</div>
+                <div id="status"></div>
+                <div id="interruptPanel" style="display: none;" class="interrupt-panel">
+                    <h3>⚠️ Esecuzione Interrotta</h3>
+                    <p id="interruptMessage"></p>
+                    <input type="text" id="userInput" placeholder="Inserisci valore...">
+                    <button onclick="resumeExecution()">▶ Riprendi Esecuzione</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentScript = '';
+        
+        function executeScript() {
+            const script = document.getElementById('scriptInput').value;
+            currentScript = script;
+            runScript(script, 'execute', null);
+        }
+        
+        function resumeExecution() {
+            const userInput = document.getElementById('userInput').value;
+            runScript(currentScript, 'resume', userInput);
+        }
+        
+        function runScript(script, action, userInput) {
+            const output = document.getElementById('output');
+            const status = document.getElementById('status');
+            const interruptPanel = document.getElementById('interruptPanel');
+            
+            output.textContent = 'Esecuzione in corso...';
+            status.innerHTML = '';
+            interruptPanel.style.display = 'none';
+            
+            const formData = new FormData();
+            formData.append('script', script);
+            formData.append('action', action);
+            if (userInput !== null) {
+                formData.append('userInput', userInput);
+            }
+            
+            fetch('executor.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayResult(data);
+            })
+            .catch(error => {
+                output.textContent = 'Errore di comunicazione: ' + error;
+                status.innerHTML = '<div class="status error">Errore di rete</div>';
+            });
+        }
+        
+        function displayResult(data) {
+            const output = document.getElementById('output');
+            const status = document.getElementById('status');
+            const interruptPanel = document.getElementById('interruptPanel');
+            const interruptMessage = document.getElementById('interruptMessage');
+            
+            let outputText = '=== RISULTATO ESECUZIONE ===\n\n';
+            outputText += 'Status: ' + data.status + '\n\n';
+            
+            if (data.variables && Object.keys(data.variables).length > 0) {
+                outputText += '--- Variabili ---\n';
+                for (let [key, value] of Object.entries(data.variables)) {
+                    outputText += key + ' = ' + JSON.stringify(value) + '\n';
+                }
+                outputText += '\n';
+            }
+            
+            if (data.message) {
+                outputText += '--- Messaggio ---\n' + data.message + '\n\n';
+            }
+            
+            if (data.action) {
+                outputText += '--- Azione ---\n' + data.action + '\n';
+                if (data.actionData) {
+                    outputText += 'Data: ' + JSON.stringify(data.actionData) + '\n';
+                }
+                outputText += '\n';
+            }
+            
+            if (data.error) {
+                outputText += '--- Errore ---\n' + data.error + '\n';
+            }
+            
+            output.textContent = outputText;
+            
+            // Handle interruption
+            if (data.status === 'interrupted') {
+                const statusClass = 'interrupted';
+                status.innerHTML = '<div class="status ' + statusClass + '">⏸ Esecuzione interrotta - In attesa di input</div>';
+                
+                interruptPanel.style.display = 'block';
+                if (data.message) {
+                    interruptMessage.textContent = 'Messaggio: ' + data.message;
+                } else if (data.action) {
+                    interruptMessage.textContent = 'Azione richiesta: ' + data.action;
+                } else {
+                    interruptMessage.textContent = 'Inserisci un valore per continuare';
+                }
+                document.getElementById('userInput').value = '';
+                document.getElementById('userInput').focus();
+            } else {
+                const statusClass = data.status === 'success' || data.status === 'completed' ? 'success' : 'error';
+                const statusIcon = statusClass === 'success' ? '✅' : '❌';
+                status.innerHTML = '<div class="status ' + statusClass + '">' + statusIcon + ' Status: ' + data.status + '</div>';
+            }
+        }
+        
+        function loadFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('scriptInput').value = e.target.result;
+                };
+                reader.readAsText(file);
+            }
+        }
+        
+        function clearScript() {
+            document.getElementById('scriptInput').value = '';
+            document.getElementById('output').textContent = 'In attesa di esecuzione...';
+            document.getElementById('status').innerHTML = '';
+        }
+        
+        function loadExample(type) {
+            const examples = {
+                factorial: `n = 5
+result = 1
+FOREACH i = 1 TO n
+    result = result * i
+END
+MESSAGE "Fattoriale calcolato"`,
+                
+                fibonacci: `a = 0
+b = 1
+n = 10
+FOREACH i = 1 TO n
+    temp = a + b
+    a = b
+    b = temp
+END
+result = a
+MESSAGE "Fibonacci calcolato"`,
+                
+                array: `numbers = [10, 20, 30, 40, 50]
+sum = 0
+FOREACH i = 0 TO 4
+    sum = sum + numbers[i]
+END
+MESSAGE "Somma array completata"`,
+                
+                object: `user = {"name": "Mario", "age": 30, "city": "Roma"}
+IF user["age"] >= 18
+    user["status"] = "adult"
+    MESSAGE "Utente adulto"
+ELSE
+    user["status"] = "minor"
+END`,
+                
+                workflow: `amount = 1500
+approved = 0
+
+IF amount <= 1000
+    approved = 1
+    ACCEPT "auto_approved"
+ELSE
+    IF amount <= 5000
+        MESSAGE "Richiede approvazione manager"
+    ELSE
+        REFUSE "amount_too_high"
+    END
+END`,
+                
+                interrupt: `name = "Mario"
+age = 25
+
+MESSAGE "Inizio validazione"
+
+IF age >= 18
+    status = "adult"
+    MESSAGE "Utente maggiorenne"
+ELSE
+    status = "minor"
+    REFUSE "underage"
+END
+
+MESSAGE "Validazione completata"`
+            };
+            
+            if (examples[type]) {
+                document.getElementById('scriptInput').value = examples[type];
+            }
+        }
+    </script>
+</body>
+</html>
