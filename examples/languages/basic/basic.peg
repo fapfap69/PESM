@@ -10,7 +10,7 @@ Program: _ stmt:Statement ( _ stmt:Statement )* _
     $res['statements'][] = $sub;
   }
 
-Statement: alt:LetStmt | alt:PrintStmt | alt:InputStmt | alt:IfStmt | alt:GotoStmt | alt:LabelStmt | alt:ForStmt | alt:EndStmt
+Statement: alt:LetStmt | alt:PrintStmt | alt:InputStmt | alt:IfStmt | alt:GotoStmt | alt:LabelStmt | alt:ForStmt
   function alt(&$res, $sub) {
     $res['node'] = $sub;
   }
@@ -114,7 +114,7 @@ Number: /[0-9]+(\\.[0-9]+)?/
 #node(VariableNode)
 Identifier: !Keyword /[A-Z][A-Z0-9]{0,}/
 
-Keyword: ("LET" | "PRINT" | "INPUT" | "IF" | "THEN" | "GOTO" | "FOR" | "TO" | "NEXT" | "END") !(/[A-Z0-9]/)
+Keyword: ("LET" | "PRINT" | "INPUT" | "IF" | "THEN" | "GOTO" | "FOR" | "TO" | "NEXT") !(/[A-Z0-9]/)
 
 _: /[ \t\n\r]{0,}/
 

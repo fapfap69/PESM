@@ -133,8 +133,10 @@ class BinaryOpNode extends Node {
             '*' => $l * $r,
             '/' => $l / $r,
             '%' => $l % $r,
+            '=' => $l == $r,  // BASIC uses = for comparison
             '==' => $l == $r,
             '!=' => $l != $r,
+            '<>' => $l != $r,  // BASIC uses <> for not equal
             '>' => $l > $r,
             '>=' => $l >= $r,
             '<' => $l < $r,

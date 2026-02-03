@@ -40,6 +40,9 @@ class ConverterGenerator
     private function generateHeader(): string
     {
         $nodes = array_unique(array_column(array_filter($this->metadata, fn($r) => $r['node']), 'node'));
+        // Always include VariableNode as it's used by Identifier
+        $nodes[] = 'VariableNode';
+        $nodes = array_unique($nodes);
         $uses = implode("\n", array_map(fn($n) => "use PESM\\Parser\\AST\\{$n};", $nodes));
         
         return <<<PHP
