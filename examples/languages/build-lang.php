@@ -1,8 +1,9 @@
 #!/usr/bin/env php
 <?php
-require_once __DIR__ . '/../../../vendor/autoload.php';
-require_once __DIR__ . '/../../../src/Parser/GrammarAnalyzer.php';
-require_once __DIR__ . '/../../../src/Parser/ConverterGenerator.php';
+$rootDir = dirname(dirname(dirname(__DIR__)));
+require_once $rootDir . '/vendor/autoload.php';
+require_once $rootDir . '/src/Parser/GrammarAnalyzer.php';
+require_once $rootDir . '/src/Parser/ConverterGenerator.php';
 
 use PESM\Parser\GrammarAnalyzer;
 use PESM\Parser\ConverterGenerator;

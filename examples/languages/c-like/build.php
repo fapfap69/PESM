@@ -1,20 +1,37 @@
 #!/usr/bin/env php
 <?php
 require_once __DIR__ . '/../../../vendor/autoload.php';
-use Smuuf\Peg\Builder;
+require_once __DIR__ . '/../../../src/Parser/GrammarAnalyzer.php';
+require_once __DIR__ . '/../../../src/Parser/ConverterGenerator.php';
+
 use PESM\Parser\GrammarAnalyzer;
 use PESM\Parser\ConverterGenerator;
 
-echo "Building C-like parser...\n";
+$lang = basename(__DIR__);
+$langUpper = strtoupper($lang);
+$pegFile = __DIR__ . "/{$lang}.peg";
 
-$builder = new Builder();
-$parser = $builder->build(file_get_contents(__DIR__ . '/clike.peg'));
-file_put_contents(__DIR__ . '/ClikeParser.php', "<?php\n\nnamespace CLIKE;\n\n" . $parser);
+if (!file_exists($pegFile)) {
+    echo "❌ Grammar file not found: {$pegFile}\n";
+    exit(1);
+}
 
-$analyzer = new GrammarAnalyzer();
-$metadata = $analyzer->analyze(__DIR__ . '/clike.peg');
+echo "Building {$langUpper} parser...\n";
+
+$grammar = file_get_contents($pegFile);
+
+// Generate parser
+$compiler = new \hafriedlander\Peg\Compiler();
+$parserCode = $compiler->compile($grammar);
+$wrapped = "<?php\nnamespace " . $langUpper . ";\n\nclass GeneratedParser extends \\hafriedlander\\Peg\\Parser\\Packrat {\n" . $parserCode . "\n}\n";
+file_put_contents(__DIR__ . "/{$langUpper}Parser.php", $wrapped);
+
+// Generate converter
+$analyzer = new GrammarAnalyzer($pegFile);
+$metadata = $analyzer->analyze();
 $generator = new ConverterGenerator($metadata);
 $converter = $generator->generate();
-file_put_contents(__DIR__ . '/ClikeConverter.php', str_replace('namespace PESM\\Parser;', 'namespace CLIKE;', $converter));
+$converter = str_replace('namespace PESM\\Parser;', "namespace {$langUpper};", $converter);
+file_put_contents(__DIR__ . "/{$langUpper}Converter.php", $converter);
 
-echo "✅ C-like parser generated!\n";
+echo "✅ {$langUpper} parser generated!\n";
