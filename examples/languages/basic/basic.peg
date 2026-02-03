@@ -69,7 +69,8 @@ Additive: left:Multiplicative ( _ op:AddOp _ right:Multiplicative )*
     $res['ops'][] = $sub;
   }
   function right(&$res, $sub) {
-    if (!isset($res['rights'])) $res['rights'] = [];\n    $res['rights'][] = $sub;
+    if (!isset($res['rights'])) $res['rights'] = [];
+    $res['rights'][] = $sub;
   }
 
 AddOp: "+" | "-"

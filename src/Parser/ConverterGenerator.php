@@ -210,8 +210,8 @@ PHP;
             return $code;
         }
         
-        // Special case for Assignment
-        if ($rule === 'Assignment') {
+        // Special case for Assignment or LetStmt (BASIC)
+        if ($rule === 'Assignment' || $rule === 'LetStmt') {
             $code .= "        \$varNode = \$this->convert(\$data['var']);\n";
             $code .= "        \$exprNode = \$data['expr']['value'] ?? \$data['expr'];\n";
             $code .= "        \$exprNode = \$this->convert(\$exprNode);\n";
@@ -238,8 +238,8 @@ PHP;
             return $code;
         }
         
-        // Special case for IfStatement
-        if ($rule === 'IfStatement') {
+        // Special case for IfStatement or IfStmt (BASIC)
+        if ($rule === 'IfStatement' || $rule === 'IfStmt') {
             $code .= "        \$cond = \$this->convert(\$data['cond']['value'] ?? \$data['cond']);\n";
             $code .= "        \$thenBody = [];\n";
             $code .= "        if (isset(\$data['thenBody'])) {\n";
@@ -271,8 +271,8 @@ PHP;
             return $code;
         }
         
-        // Special case for ForeachStatement
-        if ($rule === 'ForeachStatement') {
+        // Special case for ForeachStatement or ForStmt (BASIC)
+        if ($rule === 'ForeachStatement' || $rule === 'ForStmt') {
             $code .= "        \$varNode = \$this->convert(\$data['var']);\n";
             $code .= "        \$from = \$this->convert(\$data['from']['value'] ?? \$data['from']);\n";
             $code .= "        \$to = \$this->convert(\$data['to']['value'] ?? \$data['to']);\n";
@@ -401,10 +401,10 @@ PHP;
             return $code;
         }
         
-        // Special case for MessageStmt/AcceptStmt/RefuseStmt - now unified as InterruptNode
-        if (in_array($rule, ['MessageStmt', 'AcceptStmt', 'RefuseStmt'])) {
+        // Special case for MessageStmt/AcceptStmt/RefuseStmt/PrintStmt - unified as InterruptNode
+        if (in_array($rule, ['MessageStmt', 'AcceptStmt', 'RefuseStmt', 'PrintStmt'])) {
             $type = strtolower(str_replace('Stmt', '', $rule));
-            $key = $rule === 'MessageStmt' ? 'msg' : 'state';
+            $key = in_array($rule, ['MessageStmt', 'PrintStmt']) ? 'msg' : 'state';
             $code .= "        \$arg = isset(\$data['$key']) ? \$this->convert(\$data['$key']['value'] ?? \$data['$key']) : null;\n";
             $code .= "        return new \\PESM\\Parser\\AST\\{$nodeClass}('$type', \$arg);\n";
             $code .= "    }\n\n";

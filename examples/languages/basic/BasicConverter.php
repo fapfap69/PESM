@@ -126,8 +126,12 @@ class GeneratedConverter
      */
     private function convertLetStmt(array $data): \PESM\Parser\AST\AssignmentNode
     {
-        $args = $this->extractArguments($data);
-        return new \PESM\Parser\AST\AssignmentNode(...$args);
+        $varNode = $this->convert($data['var']);
+        $exprNode = $data['expr']['value'] ?? $data['expr'];
+        $exprNode = $this->convert($exprNode);
+        // Support both simple variable and array access as lvalue
+        $target = ($varNode instanceof \PESM\Parser\AST\VariableNode) ? $varNode->name : $varNode;
+        return new \PESM\Parser\AST\AssignmentNode($target, $exprNode);
     }
 
     /**
@@ -135,8 +139,8 @@ class GeneratedConverter
      */
     private function convertPrintStmt(array $data): \PESM\Parser\AST\InterruptNode
     {
-        $args = $this->extractArguments($data);
-        return new \PESM\Parser\AST\InterruptNode(...$args);
+        $arg = isset($data['msg']) ? $this->convert($data['msg']['value'] ?? $data['msg']) : null;
+        return new \PESM\Parser\AST\InterruptNode('print', $arg);
     }
 
     /**
@@ -153,8 +157,33 @@ class GeneratedConverter
      */
     private function convertIfStmt(array $data): \PESM\Parser\AST\IfNode
     {
-        $args = $this->extractArguments($data);
-        return new \PESM\Parser\AST\IfNode(...$args);
+        $cond = $this->convert($data['cond']['value'] ?? $data['cond']);
+        $thenBody = [];
+        if (isset($data['thenBody'])) {
+            foreach ($data['thenBody'] as $item) {
+                // Check if it's a Block node
+                if (isset($item['_matchrule']) && $item['_matchrule'] === 'Block') {
+                    $blockNode = $this->convert($item);
+                    $thenBody = array_merge($thenBody, $blockNode->statements);
+                } else {
+                    $node = isset($item['node']) ? $item['node'] : $item;
+                    $thenBody[] = $this->convert($node);
+                }
+            }
+        }
+        $elseBody = [];
+        if (isset($data['elseBody'])) {
+            foreach ($data['elseBody'] as $item) {
+                if (isset($item['_matchrule']) && $item['_matchrule'] === 'Block') {
+                    $blockNode = $this->convert($item);
+                    $elseBody = array_merge($elseBody, $blockNode->statements);
+                } else {
+                    $node = isset($item['node']) ? $item['node'] : $item;
+                    $elseBody[] = $this->convert($node);
+                }
+            }
+        }
+        return new \PESM\Parser\AST\IfNode($cond, $thenBody, $elseBody);
     }
 
     /**
@@ -180,8 +209,19 @@ class GeneratedConverter
      */
     private function convertForStmt(array $data): \PESM\Parser\AST\ForeachNode
     {
-        $args = $this->extractArguments($data);
-        return new \PESM\Parser\AST\ForeachNode(...$args);
+        $varNode = $this->convert($data['var']);
+        $from = $this->convert($data['from']['value'] ?? $data['from']);
+        $to = $this->convert($data['to']['value'] ?? $data['to']);
+        $body = [];
+        if (isset($data['loopBody'])) {
+            foreach ($data['loopBody'] as $stmt) {
+                $node = isset($stmt['node']) ? $stmt['node'] : $stmt;
+                $body[] = $this->convert($node);
+            }
+        }
+        // ForeachNode expects (var, iterable, body) but grammar has from/to
+        // Create range array
+        return new \PESM\Parser\AST\ForeachNode($varNode->name, new \PESM\Parser\AST\BinaryOpNode($from, 'range', $to), $body);
     }
 
     /**

@@ -999,7 +999,8 @@ public function Additive_op (&$res, $sub) {
   }
 
 public function Additive_right (&$res, $sub) {
-    if (!isset($res['rights'])) $res['rights'] = [];\n    $res['rights'][] = $sub;
+    if (!isset($res['rights'])) $res['rights'] = [];
+    $res['rights'][] = $sub;
   }
 
 /* AddOp: "+" | "-" */
