@@ -4,13 +4,13 @@
 # Simple BASIC without line numbers
 
 #node(ProgramNode)
-Program: _ stmt:Statement+
+Program: _ stmt:Statement ( _ stmt:Statement )* _
   function stmt(&$res, $sub) {
     if (!isset($res['statements'])) $res['statements'] = [];
     $res['statements'][] = $sub;
   }
 
-Statement: alt:LetStmt _ | alt:PrintStmt _ | alt:InputStmt _ | alt:IfStmt _ | alt:GotoStmt _ | alt:LabelStmt _ | alt:ForStmt _ | alt:NextStmt _ | alt:EndStmt _
+Statement: alt:LetStmt | alt:PrintStmt | alt:InputStmt | alt:IfStmt | alt:GotoStmt | alt:LabelStmt | alt:ForStmt | alt:NextStmt | alt:EndStmt
   function alt(&$res, $sub) {
     $res['node'] = $sub;
   }
@@ -109,6 +109,6 @@ Identifier: !Keyword /[A-Z][A-Z0-9]{0,}/
 
 Keyword: ("LET" | "PRINT" | "INPUT" | "IF" | "THEN" | "GOTO" | "FOR" | "TO" | "NEXT" | "END") !(/[A-Z0-9]/)
 
-_: /[ \\t\\n\\r]{0,}/
+_: /[ \t\n\r]{0,}/
 
 */

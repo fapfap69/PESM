@@ -111,14 +111,8 @@ class GeneratedConverter
      */
     private function convertProgram(array $data): \PESM\Parser\AST\ProgramNode
     {
-        $items = [];
-        if (isset($data['statements'])) {
-            foreach ($data['statements'] as $stmt) {
-                $node = isset($stmt['node']) ? $stmt['node'] : $stmt;
-                $items[] = $this->convert($node);
-            }
-        }
-        return new \PESM\Parser\AST\ProgramNode($items);
+        $args = $this->extractArguments($data);
+        return new \PESM\Parser\AST\ProgramNode(...$args);
     }
 
     /**
