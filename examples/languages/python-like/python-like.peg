@@ -143,7 +143,10 @@ DictPairs: pair:DictPair ( _ "," _ pair:DictPair )*
 DictPair: key:String _ ":" _ value:Expression
 
 #node(LiteralNode)
-String: '"' content:/[^"]{0,}/ '"' | "'" content:/[^']{0,}/ "'"
+String: '"' content:/[^"]{0,}/ '"'
+  function content(&$res, $sub) {
+    $res['value'] = $sub['text'];
+  }
   function content(&$res, $sub) {
     $res['value'] = $sub['text'];
   }
