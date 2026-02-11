@@ -6,7 +6,7 @@
  * e reagire ai comandi workflow (MESSAGE, ACCEPT, REFUSE)
  */
 
-require_once __DIR__ . '/../src/ScriptEngine.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 class WorkflowHandler
 {
@@ -38,8 +38,7 @@ class WorkflowHandler
                     $this->handleMessage($result['actionData']);
                     $result = $this->engine->resume(
                         $script,
-                        $result['variables'],
-                        $result['resumeFrom']
+                        $result['state']
                     );
                     continue;
                 }

@@ -29,7 +29,7 @@ $messages = [];
 while ($result['status'] === 'interrupted' && $iteration < 10) {
     $messages[] = $result['message'] ?? $result['actionData'];
     echo "Iteration $iteration: action=" . ($result['action'] ?? '?') . ", message=\"" . ($result['message'] ?? $result['actionData']) . "\", status=" . ($result['variables']['status'] ?? '?') . "\n";
-    $result = $engine->resume($script, $result['variables'], $result['resumeFrom']);
+    $result = $engine->resume($script, $result['state']);
     $iteration++;
 }
 

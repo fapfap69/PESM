@@ -20,7 +20,7 @@ echo "Iteration 0: status=" . $result['status'] . ", message=" . ($result['messa
 
 $iteration = 1;
 while ($result['status'] === 'interrupted' && $iteration < 10) {
-    $result = $engine->resume($script, $result['variables'], $result['resumeFrom']);
+    $result = $engine->resume($script, $result['state']);
     echo "Iteration $iteration: status=" . $result['status'] . ", message=" . ($result['message'] ?? 'null') . ", x=" . ($result['variables']['x'] ?? '?') . "\n";
     $iteration++;
 }
