@@ -1,0 +1,28 @@
+{
+    "name": "fap/pesm",
+    "description": "PHP Embedded Scripts Manager - A high-performance scripting engine with bytecode compilation and DSL toolkit",
+    "type": "library",
+    "keywords": ["scripting", "dsl", "bytecode", "vm", "parser", "workflow", "embedded"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Antonio Franco",
+            "email": "antonio.franco@ba.infn.it",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=8.0",
+        "hafriedlander/php-peg": "^0.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "PESM\\": "src/"
+        }
+    },
+    "bin": [
+        "bin/build-parser.php"
+    ],
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

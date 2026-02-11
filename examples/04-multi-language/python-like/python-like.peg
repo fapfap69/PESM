@@ -1,0 +1,42 @@
+/*!* PEGParser
+
+# Python-like Language - Pure Syntax
+# Uses same rule names as PESM for compatibility with shared ASTBuilder
+
+Program: _ stmt:Statement ( /[\n;]/ _ stmt:Statement )* _
+
+Statement: alt:Assignment | alt:InterruptSimpleStmt
+
+Assignment: var:Identifier _ "=" _ expr:Expression
+
+InterruptSimpleStmt: type:("print") _ "(" _ expr:Expression _ ")"
+
+Expression: val:Logical
+
+Logical: left:Comparison ( _ op:LogicalOp _ right:Comparison )*
+
+LogicalOp: "and" | "or"
+
+Comparison: left:Additive ( _ op:CompOp _ right:Additive )*
+
+CompOp: "==" | "!=" | "<=" | ">=" | "<" | ">"
+
+Additive: left:Multiplicative ( _ op:AddOp _ right:Multiplicative )*
+
+AddOp: "+" | "-"
+
+Multiplicative: left:Primary ( _ op:MulOp _ right:Primary )*
+
+MulOp: "*" | "/"
+
+Primary: val:Number | val:Identifier | "(" _ val:Expression _ ")"
+
+Number: /[0-9]+(\.[0-9]+)?/
+
+Identifier: !Keyword /[a-z_][a-z0-9_]{0,}/
+
+Keyword: ("print" | "and" | "or" | "if" | "while" | "for") !(/[a-z0-9_]/)
+
+_: /[ \t\n\r]{0,}/
+
+*/

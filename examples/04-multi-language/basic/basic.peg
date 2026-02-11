@@ -1,0 +1,52 @@
+/*!* PEGParser
+
+# BASIC-like Language Grammar - Pure Syntax
+# Uses same rule names as PESM for compatibility with shared ASTBuilder
+
+Program: _ stmt:Statement ( _ stmt:Statement )* _
+
+Statement: alt:Assignment | alt:InterruptSimpleStmt | alt:InterruptWithVarStmt | alt:IfStatement | alt:GotoStmt | alt:LabelStmt | alt:ForeachRangeStmt
+
+Assignment: "LET"? _ var:Identifier _ "=" _ expr:Expression
+
+InterruptSimpleStmt: type:("PRINT") _ expr:Expression
+
+InterruptWithVarStmt: type:("INPUT") _ var:Identifier
+
+IfStatement: "IF" _ cond:Expression _ "THEN" _ stmt:Statement
+
+GotoStmt: "GOTO" _ label:Identifier
+
+LabelStmt: label:Identifier _ ":"
+
+ForeachRangeStmt: "FOR" _ var:Identifier _ "=" _ from:Expression _ "TO" _ to:Expression _ body:ForBody ( _ body:ForBody )* _ "NEXT"
+
+ForBody: alt:Assignment | alt:InterruptSimpleStmt | alt:InterruptWithVarStmt | alt:IfStatement | alt:GotoStmt | alt:LabelStmt
+
+Expression: val:Comparison
+
+Comparison: left:Additive ( _ op:CompOp _ right:Additive )*
+
+CompOp: "=" | "<>" | "<=" | ">=" | "<" | ">"
+
+Additive: left:Multiplicative ( _ op:AddOp _ right:Multiplicative )*
+
+AddOp: "+" | "-"
+
+Multiplicative: left:Primary ( _ op:MulOp _ right:Primary )*
+
+MulOp: "*" | "/"
+
+Primary: val:String | val:Number | val:Identifier | "(" _ val:Expression _ ")"
+
+String: '"' content:/[^"]{0,}/ '"'
+
+Number: /[0-9]+(\.[0-9]+)?/
+
+Identifier: !Keyword /[A-Z][A-Z0-9]{0,}/
+
+Keyword: ("LET" | "PRINT" | "INPUT" | "IF" | "THEN" | "GOTO" | "FOR" | "TO" | "NEXT" | "END") !(/[A-Z0-9]/)
+
+_: ( /[ \t\r]{1,}/ | /\n/ | /REM[^\n]{0,}\n?/ ){0,}
+
+*/

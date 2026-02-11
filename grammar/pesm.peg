@@ -1,0 +1,110 @@
+/*!* PEGParser
+
+# PESM Grammar - Pure Syntax (No AST annotations)
+# Parse tree will be converted to AST by external ASTBuilder
+
+Program: _ stmt:Statement (_ stmt:Statement)*
+
+Statement: alt:CommandDecl _ | alt:StructDef _ | alt:FunctionDef _ | alt:IfStatement _ | alt:SwitchStatement _ | alt:DoWhileStatement _ | alt:RepeatUntilStatement _ | alt:WhileStatement _ | alt:ForeachInStmt _ | alt:ForeachRangeStmt _ | alt:InterruptWithVarStmt _ | alt:InterruptSimpleStmt _ | alt:ReturnStmt _ | alt:BreakStmt _ | alt:ContinueStmt _ | alt:LabelStmt _ | alt:GotoStmt _ | alt:Assignment _
+
+FunctionDef: "FUNCTION" _ funcName:Identifier _ "(" _ params:ParameterList? _ ")" _ body:Statement+ "END"
+
+ParameterList: head:Identifier ( _ "," _ tail:Identifier )*
+
+ReturnStmt: "RETURN" !(_ "=") ( _ expr:Expression )?
+
+Assignment: var:Postfix _ "=" _ expr:Expression
+
+Expression: val:Logical
+
+Logical: left:Comparison (_ op:LogicalOp _ right:Comparison)*
+
+LogicalOp: "AND" | "OR"
+
+Comparison: left:Additive (_ op:CompOp _ right:Additive)*
+
+CompOp: "==" | "!=" | ">=" | "<=" | ">" | "<"
+
+Additive: left:Multiplicative (_ op:AddOp _ right:Multiplicative)*
+
+AddOp: "+" | "-"
+
+Multiplicative: left:Postfix (_ op:MulOp _ right:Postfix)*
+
+MulOp: "*" | "/" | "%"
+
+Postfix: base:Unary (_ "[" _ index:Expression _ "]" | _ "." _ prop:Identifier)*
+
+Unary: op:UnaryOp _ expr:Unary | val:Primary
+
+UnaryOp: "NOT" | "-" | "+"
+
+Primary: val:MakeStruct | val:ObjectLiteral | val:ArrayLiteral | val:String | val:Number | val:IdentifierOrCall | "(" _ val:Expression _ ")"
+
+IdentifierOrCall: id:Identifier _ "(" _ args:ExpressionList? _ ")" | val:Identifier
+
+ExpressionList: head:Expression ( _ "," _ tail:Expression )*
+
+ArgumentList: head:Argument ( _ "," _ tail:Argument )*
+
+Argument: argName:Identifier _ ":" _ value:Expression | value:Expression
+
+ArrayLiteral: "[" _ elems:ArrayElements? _ "]"
+
+ArrayElements: head:Expression ( _ "," _ tail:Expression )*
+
+ObjectLiteral: "{" _ pairs:ObjectPairs? _ "}"
+
+ObjectPairs: head:ObjectPair ( _ "," _ tail:ObjectPair )*
+
+ObjectPair: key:String _ ":" _ value:Expression
+
+String: '"' /[^"]{0,}/ '"'
+
+Number: /[0-9]+(\.[0-9]+)?/
+
+Identifier: !Keyword /[a-zA-Z_][a-zA-Z0-9_]{0,}/
+
+Keyword: ("COMMAND" | "STRUCT" | "MAKE" | "GOTO" | "BEGIN" | "WHILE" | "DO" | "REPEAT" | "UNTIL" | "FUNCTION" | "RETURN" | "FOREACH" | "MESSAGE" | "ACCEPT" | "REFUSE" | "INPUT" | "SWITCH" | "CASE" | "DEFAULT" | "ELSE" | "AND" | "OR" | "NOT" | "END" | "IF" | "TO" | "IN" | "BREAK" | "CONTINUE") !(/[a-zA-Z0-9_]/)
+
+Block: "{" _ stmt:Statement* _ "}" | "BEGIN" _ stmt:Statement* _ "END"
+
+IfStatement: "IF" _ cond:Expression _ then:Block ( _ "ELSE" _ else:Block )? | "IF" _ cond:Expression _ then:Statement+ ( _ "ELSE" _ else:Statement+ )? ( _ "END" ) | "IF" _ cond:Expression _ stmt:Statement
+
+ForeachInStmt: "FOREACH" _ var:Identifier _ "IN" _ iter:Expression _ body:Statement+ "END"
+
+ForeachRangeStmt: "FOREACH" _ var:Identifier _ "=" _ from:Expression _ "TO" _ to:Expression _ body:Statement+ "END"
+
+WhileStatement: "WHILE" _ cond:Expression _ body:Statement+ "END"
+
+DoWhileStatement: "DO" _ body:Statement+ "WHILE" _ cond:Expression
+
+RepeatUntilStatement: "REPEAT" _ body:Statement+ "UNTIL" _ cond:Expression
+
+SwitchStatement: "SWITCH" _ expr:Expression _ cases:CaseClause+ def:DefaultClause? _ "END"
+
+CaseClause: "CASE" _ val:Expression _ body:Statement+
+
+DefaultClause: "DEFAULT" _ body:Statement+
+
+BreakStmt: "BREAK"
+
+ContinueStmt: "CONTINUE"
+
+InterruptWithVarStmt: ("INPUT") _ expr:Expression _ var:Identifier
+
+InterruptSimpleStmt: type:("MESSAGE" | "ACCEPT" | "REFUSE") _ expr:Expression
+
+LabelStmt: label:Identifier _ ":"
+
+GotoStmt: "GOTO" _ label:Identifier
+
+StructDef: "STRUCT" _ structName:Identifier (_ field:Identifier)* _ "END"
+
+MakeStruct: "MAKE" _ structName:Identifier _ "(" _ args:ArgumentList? _ ")"
+
+CommandDecl: "COMMAND" _ head:Identifier ( _ "," _ tail:Identifier )*
+
+_: /[ \t\n\r]{0,}/
+
+*/

@@ -1,0 +1,55 @@
+/*!* PEGParser
+
+# C-like Language Grammar - Pure Syntax
+# Uses same rule names as PESM for compatibility with shared ASTBuilder
+
+Program: _ stmt:Statement ( _ stmt:Statement )* _
+
+Statement: alt:IfStatement | alt:WhileStatement | alt:Assignment _ ";" | alt:InterruptSimpleStmt _ ";"
+
+
+Assignment: var:Postfix _ "=" _ expr:Expression
+
+IfStatement: "if" _ "(" _ cond:Expression _ ")" _ "{" _ then:Statement ( _ then:Statement )* _ "}" ( _ "else" _ "{" _ else:Statement ( _ else:Statement )* _ "}" )? | "if" _ "(" _ cond:Expression _ ")" _ then:Statement ( _ "else" _ else:Statement )?
+
+WhileStatement: "while" _ "(" _ cond:Expression _ ")" _ "{" _ body:Statement ( _ body:Statement )* _ "}" | "while" _ "(" _ cond:Expression _ ")" _ body:Statement
+
+InterruptSimpleStmt: type:("print") _ "(" _ expr:Expression _ ")"
+
+Expression: val:Logical
+
+Logical: left:Comparison ( _ op:LogicalOp _ right:Comparison )*
+
+LogicalOp: "&&" | "||"
+
+Comparison: left:Additive ( _ op:CompOp _ right:Additive )*
+
+CompOp: "==" | "!=" | "<=" | ">=" | "<" | ">"
+
+Additive: left:Multiplicative ( _ op:AddOp _ right:Multiplicative )*
+
+AddOp: "+" | "-"
+
+Multiplicative: left:Postfix ( _ op:MulOp _ right:Postfix )*
+
+MulOp: "*" | "/"
+
+Postfix: base:Primary ( _ "[" _ index:Expression _ "]" )*
+
+Primary: val:ArrayLiteral | val:String | val:Number | val:Identifier | "(" _ val:Expression _ ")"
+
+ArrayLiteral: "[" _ elems:ArrayElements? _ "]"
+
+ArrayElements: head:Expression ( _ "," _ tail:Expression )*
+
+String: '"' content:/[^"]{0,}/ '"'
+
+Number: /[0-9]+(\.[0-9]+)?/
+
+Identifier: !Keyword /[a-z_][a-z0-9_]{0,}/
+
+Keyword: ("if" | "else" | "while" | "print" | "for") !(/[a-z0-9_]/)
+
+_: ( /[ \t\r]{1,}/ | /\n/ | /\/\/[^\n]{0,}\n?/ | /\/\*[^*]{0,}\*\// ){0,}
+
+*/
