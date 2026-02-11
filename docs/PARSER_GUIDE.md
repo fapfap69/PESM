@@ -1,22 +1,22 @@
-# Guida Sviluppatore: Implementare un Linguaggio con PESM
+# Developer Guide: Implementing a Language with PESM
 
-**Autore**: Antonio Franco - INFN Sez. di Bari  
-**Versione**: 1.0  
-**Data**: 2024
-
----
-
-## Introduzione
-
-Questa guida ti mostrerà come creare un linguaggio di scripting personalizzato usando PESM. Partiremo da un linguaggio minimale tipo BASIC e costruiremo passo-passo tutte le funzionalità.
-
-PESM usa grammatiche **pure syntax** in formato PEG (Parsing Expression Grammar) che vengono automaticamente convertite in parser PHP.
+**Author**: Antonio Franco - INFN Sez. di Bari  
+**Version**: 1.0  
+**Date**: 2025
 
 ---
 
-## Architettura del Sistema
+## Introduction
 
-PESM processa il codice in 4 fasi:
+This guide will show you how to create a custom scripting language using PESM. We'll start with a minimal BASIC-like language and build all features step by step.
+
+PESM uses **pure syntax** grammars in PEG (Parsing Expression Grammar) format that are automatically converted to PHP parsers.
+
+---
+
+## System Architecture
+
+PESM processes code in 4 phases:
 
 ```
 Script → Parser (PEG) → ASTBuilder → Compiler → VM
@@ -24,49 +24,49 @@ Script → Parser (PEG) → ASTBuilder → Compiler → VM
       ParseTree      AST Array    Bytecode  Execution
 ```
 
-1. **Parser (PEG)**: Analizza il testo e crea un parse tree
-2. **ASTBuilder**: Converte il parse tree in AST array
-3. **Compiler**: Trasforma l'AST in bytecode
-4. **VM**: Esegue il bytecode con stack-based execution
+1. **Parser (PEG)**: Analyzes text and creates a parse tree
+2. **ASTBuilder**: Converts parse tree to AST array
+3. **Compiler**: Transforms AST into bytecode
+4. **VM**: Executes bytecode with stack-based execution
 
 ---
 
-## Esempio: Linguaggio Minimal-BASIC
+## Example: Minimal-BASIC Language
 
-Creeremo un linguaggio con queste caratteristiche:
+We'll create a language with these features:
 
-- Variabili dinamiche
-- Operazioni aritmetiche
-- Cicli (FOR, WHILE)
-- Condizionali (IF/THEN/ELSE)
+- Dynamic variables
+- Arithmetic operations
+- Loops (FOR, WHILE)
+- Conditionals (IF/THEN/ELSE)
 - Input/Output (PRINT, INPUT)
-- Funzioni (DEF/END)
+- Functions (DEF/END)
 
 ---
 
-## Sintassi PEG: Regole Fondamentali
+## PEG Syntax: Fundamental Rules
 
-### Elementi Base
+### Basic Elements
 
 ```peg
-# Regola semplice
-NomeRegola: Espressione
+# Simple rule
+RuleName: Expression
 
-# Scelta (alternativa)
-Regola: alt1 | alt2 | alt3
+# Choice (alternative)
+Rule: alt1 | alt2 | alt3
 
-# Sequenza
-Regola: parte1 parte2 parte3
+# Sequence
+Rule: part1 part2 part3
 
-# Etichetta (cattura)
-Regola: nome:Identifier _ "=" _ valore:Expression
+# Label (capture)
+Rule: name:Identifier _ "=" _ value:Expression
 
-# Quantificatori
-Regola: elemento?      # 0 o 1 (opzionale)
-Regola: elemento*      # 0 o più
-Regola: elemento+      # 1 o più
+# Quantifiers
+Rule: element?      # 0 or 1 (optional)
+Rule: element*      # 0 or more
+Rule: element+      # 1 or more
 
-# Lookahead negativo
+# Negative lookahead
 Identifier: !Keyword /[a-zA-Z_][a-zA-Z0-9_]*/
 
 # Regex
@@ -77,75 +77,75 @@ String: '"' /[^"]*/ '"'
 _: /[ \t\n\r]*/
 ```
 
-### Regole Importanti
+### Important Rules
 
-1. **Ordine delle alternative**: Il parser prova in ordine, la prima che matcha vince
-2. **Etichette**: Usare nomi descrittivi (es. `var:Identifier`, `expr:Expression`)
-3. **Whitespace**: Sempre usare `_` tra token per ignorare spazi
-4. **Keywords**: Sempre usare lookahead negativo per evitare conflitti
+1. **Alternative order**: Parser tries in order, first match wins
+2. **Labels**: Use descriptive names (e.g. `var:Identifier`, `expr:Expression`)
+3. **Whitespace**: Always use `_` between tokens to ignore spaces
+4. **Keywords**: Always use negative lookahead to avoid conflicts
 
 ---
 
-## Passo 1: Lessico Base
+## Step 1: Basic Lexicon
 
-Iniziamo definendo i token fondamentali:
+Let's start by defining fundamental tokens:
 
 ```peg
-# Whitespace (spazi, tab, newline)
+# Whitespace (spaces, tabs, newlines)
 _: /[ \t\n\r]*/
 
-# Keywords (parole riservate)
+# Keywords (reserved words)
 Keyword: ("LET" | "PRINT" | "INPUT" | "IF" | "THEN" | "ELSE" | "END" | "FOR" | "TO" | "NEXT" | "WHILE" | "DEF") !(/[a-zA-Z0-9_]/)
 
-# Identificatori (nomi variabili)
+# Identifiers (variable names)
 Identifier: !Keyword /[a-zA-Z_][a-zA-Z0-9_]*/
 
-# Numeri
+# Numbers
 Number: /[0-9]+(\.[0-9]+)?/
 
-# Stringhe
+# Strings
 String: '"' content:/[^"]*/ '"'
 ```
 
-**Nota**: Il `!(/[a-zA-Z0-9_]/)` dopo Keyword assicura che "PRINT" non matchi "PRINTER".
+**Note**: The `!(/[a-zA-Z0-9_]/)` after Keyword ensures "PRINT" doesn't match "PRINTER".
 
 ---
 
-## Passo 2: Espressioni (Priorità Operatori)
+## Step 2: Expressions (Operator Precedence)
 
-Le espressioni devono rispettare la precedenza matematica:
+Expressions must respect mathematical precedence:
 
 ```peg
-# Punto di ingresso
+# Entry point
 Expression: val:Additive
 
-# Addizione/Sottrazione (priorità bassa)
+# Addition/Subtraction (low priority)
 Additive: left:Multiplicative (_ op:AddOp _ right:Multiplicative)*
 AddOp: "+" | "-"
 
-# Moltiplicazione/Divisione (priorità media)
+# Multiplication/Division (medium priority)
 Multiplicative: left:Unary (_ op:MulOp _ right:Unary)*
 MulOp: "*" | "/"
 
-# Unario (priorità alta)
+# Unary (high priority)
 Unary: op:UnaryOp _ expr:Unary | val:Primary
 UnaryOp: "-" | "+"
 
-# Primari (priorità massima)
+# Primary (highest priority)
 Primary: val:Number | val:String | val:Identifier | "(" _ val:Expression _ ")"
 ```
 
-**Esempio**: `2 + 3 * 4` viene parsato come `2 + (3 * 4)` grazie alla gerarchia.
+**Example**: `2 + 3 * 4` is parsed as `2 + (3 * 4)` thanks to the hierarchy.
 
 ---
 
-## Passo 3: Statements Base
+## Step 3: Basic Statements
 
 ```peg
-# Programma = lista di statements
+# Program = list of statements
 Program: _ stmt:Statement (_ stmt:Statement)*
 
-# Tipi di statement
+# Statement types
 Statement: alt:PrintStmt _ | alt:LetStmt _ | alt:InputStmt _
 
 # LET x = 10
@@ -167,20 +167,20 @@ PRINT x + y
 
 ---
 
-## Passo 4: Condizionali
+## Step 4: Conditionals
 
 ```peg
-# Aggiungi a Statement
+# Add to Statement
 Statement: alt:IfStmt _ | alt:PrintStmt _ | alt:LetStmt _ | alt:InputStmt _
 
 # IF condition THEN ... ELSE ... END
 IfStmt: "IF" _ cond:Comparison _ "THEN" _ then:Statement+ ( _ "ELSE" _ else:Statement+ )? _ "END"
 
-# Operatori di confronto
+# Comparison operators
 Comparison: left:Additive (_ op:CompOp _ right:Additive)*
 CompOp: "==" | "!=" | ">=" | "<=" | ">" | "<"
 
-# Aggiorna Expression per includere Comparison
+# Update Expression to include Comparison
 Expression: val:Comparison
 ```
 
@@ -188,20 +188,20 @@ Expression: val:Comparison
 ```basic
 LET x = 10
 IF x > 5 THEN
-    PRINT "Grande"
+    PRINT "Large"
 ELSE
-    PRINT "Piccolo"
+    PRINT "Small"
 END
 ```
 
 ---
 
-## Passo 5: Cicli
+## Step 5: Loops
 
 ### FOR Loop
 
 ```peg
-# Aggiungi a Statement
+# Add to Statement
 Statement: alt:ForStmt _ | alt:IfStmt _ | ...
 
 # FOR i = 1 TO 10 ... NEXT
@@ -226,7 +226,7 @@ PRINT sum
 
 ---
 
-## Passo 6: Funzioni
+## Step 6: Functions
 
 ```peg
 # DEF name(param1, param2) ... END
@@ -234,7 +234,7 @@ FunctionDef: "DEF" _ name:Identifier _ "(" _ params:ParameterList? _ ")" _ body:
 
 ParameterList: head:Identifier (_ "," _ tail:Identifier)*
 
-# Chiamata funzione
+# Function call
 Primary: val:FunctionCall | val:Number | val:String | val:Identifier | "(" _ val:Expression _ ")"
 
 FunctionCall: name:Identifier _ "(" _ args:ArgumentList? _ ")"
@@ -254,7 +254,7 @@ add(10, 20)
 
 ---
 
-## Grammatica Completa: Minimal-BASIC
+## Complete Grammar: Minimal-BASIC
 
 ```peg
 /*!* PEGParser
@@ -315,66 +315,66 @@ _: /[ \t\n\r]*/
 
 ---
 
-## Generazione del Parser
+## Parser Generation
 
-### 1. Salva la grammatica
+### 1. Save the grammar
 
-Crea il file `grammar/basic.peg` con la grammatica sopra.
+Create file `grammar/basic.peg` with the grammar above.
 
-### 2. Genera parser e converter
+### 2. Generate parser and converter
 
 ```bash
 php bin/build-parser.php
 ```
 
-Questo comando genera automaticamente:
-1. `src/Parser/GeneratedParser.php` - Parser PEG specifico per la tua grammatica
-2. `src/Parser/GeneratedConverter.php` - Converter specifico per la tua grammatica
+This command automatically generates:
+1. `src/Parser/GeneratedParser.php` - PEG parser specific to your grammar
+2. `src/Parser/GeneratedConverter.php` - Converter specific to your grammar
 
-### 3. ASTBuilder Universale (già presente)
+### 3. Universal ASTBuilder (already present)
 
-PESM include un **ASTBuilder universale** (`src/Parser/ASTBuilder.php`) che:
-- Supporta tutti i 29 costrutti AST di PESM
-- Funziona con qualsiasi grammatica che usa questi costrutti
-- **Non viene mai rigenerato** - è scritto una volta e funziona per tutte le grammatiche
+PESM includes a **universal ASTBuilder** (`src/Parser/ASTBuilder.php`) that:
+- Supports all 29 PESM AST constructs
+- Works with any grammar using these constructs
+- **Never regenerated** - written once and works for all grammars
 
-**Requisiti per l'auto-funzionamento**:
-- Usa etichette standard: `var:`, `expr:`, `cond:`, `body:`, `left:`, `right:`, `op:`
-- Usa pattern `head:` e `tail:` per le liste
-- Usa `alt:` per le alternative in Statement
-- Segui le convenzioni di naming PESM
+**Requirements for auto-functioning**:
+- Use standard labels: `var:`, `expr:`, `cond:`, `body:`, `left:`, `right:`, `op:`
+- Use `head:` and `tail:` patterns for lists
+- Use `alt:` for alternatives in Statement
+- Follow PESM naming conventions
 
-**Esempio - Questa grammatica funziona automaticamente**:
+**Example - This grammar works automatically**:
 
 ```peg
-# ✅ CORRETTO - ASTBuilder universale funziona
+# ✅ CORRECT - Universal ASTBuilder works
 LetStmt: "LET" _ var:Identifier _ "=" _ expr:Expression
 IfStmt: "IF" _ cond:Expression _ "THEN" _ then:Statement+ _ "END"
 Additive: left:Multiplicative (_ op:AddOp _ right:Multiplicative)*
 ParameterList: head:Identifier (_ "," _ tail:Identifier)*
 ```
 
-### 4. Flusso Completo
+### 4. Complete Flow
 
 ```
-BUILD TIME (una tantum):
+BUILD TIME (one-time):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 grammar/basic.peg
     ↓
 php bin/build-parser.php
     ↓
-✅ GeneratedParser.php (specifico per basic.peg)
-✅ GeneratedConverter.php (specifico per basic.peg)
-❌ ASTBuilder.php (universale - già esiste, mai rigenerato)
+✅ GeneratedParser.php (specific to basic.peg)
+✅ GeneratedConverter.php (specific to basic.peg)
+❌ ASTBuilder.php (universal - already exists, never regenerated)
 
 
-RUNTIME (ogni esecuzione):
+RUNTIME (every execution):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Script
     ↓
-GeneratedParser (specifico)
+GeneratedParser (specific)
     ↓
-ASTBuilder (universale - 29 costrutti)
+ASTBuilder (universal - 29 constructs)
     ↓
 ArrayToNodeConverter
     ↓
@@ -383,17 +383,17 @@ Compiler
 VM
 ```
 
-### 5. Personalizzazioni ASTBuilder (raramente necessario)
+### 5. ASTBuilder Customizations (rarely needed)
 
-Se hai bisogno di logica custom, estendi ASTBuilder:
+If you need custom logic, extend ASTBuilder:
 
 ```php
 class BasicASTBuilder extends \PESM\Parser\ASTBuilder
 {
-    // Override solo se necessario
+    // Override only if necessary
     protected function buildForStmt(array $node): array
     {
-        // FOR in BASIC diventa FOREACH in PESM
+        // FOR in BASIC becomes FOREACH in PESM
         $iterable = [
             '_matchrule' => 'RangeNode',
             'start' => $this->build($node['from']),
@@ -410,7 +410,7 @@ class BasicASTBuilder extends \PESM\Parser\ASTBuilder
     
     protected function buildPrintStmt(array $node): array
     {
-        // PRINT diventa InterruptSimpleNode (MESSAGE)
+        // PRINT becomes InterruptSimpleNode (MESSAGE)
         return [
             '_matchrule' => 'InterruptSimpleNode',
             'type' => 'message',
@@ -420,11 +420,11 @@ class BasicASTBuilder extends \PESM\Parser\ASTBuilder
 }
 ```
 
-### 5. Usa il parser
+### 6. Use the parser
 
 ```php
 use PESM\Parser\GeneratedParser;
-use PESM\Parser\ASTBuilder;  // O la tua classe custom
+use PESM\Parser\ASTBuilder;  // Or your custom class
 use PESM\Parser\ArrayToNodeConverter;
 use PESM\Bytecode\Compiler;
 use PESM\Bytecode\VM;
@@ -434,7 +434,7 @@ $parser = new GeneratedParser($code);
 $parseTree = $parser->match_Program();
 
 // Build AST
-$builder = new ASTBuilder();  // Usa quello condiviso
+$builder = new ASTBuilder();  // Use the shared one
 $astArray = $builder->build($parseTree);
 
 // Convert to Nodes
@@ -452,33 +452,33 @@ echo "Status: {$result->status}\n";
 print_r($result->variables);
 ```
 
-### 6. Esempio Completo
+### 7. Complete Example
 
-Vedi `examples/languages/basic/` per un esempio funzionante:
+See `examples/04-multi-language/basic/` for a working example:
 
 ```
-examples/languages/basic/
-├── basic.peg           # Grammatica BASIC
-├── BASICParser.php     # Parser generato
-├── test.php            # Test del linguaggio
-└── example.bas         # Codice BASIC di esempio
+examples/04-multi-language/basic/
+├── basic.peg           # BASIC grammar
+├── BASICParser.php     # Generated parser
+├── test.php            # Language test
+└── example.bas         # BASIC example code
 ```
 
-**Esegui:**
+**Run:**
 ```bash
-cd examples/languages/basic
-php build.php           # Genera parser
-php test.php            # Testa il linguaggio
+cd examples/04-multi-language/basic
+php build.php           # Generate parser
+php test.php            # Test the language
 ```
 
 ---
 
-## Esempi Avanzati
+## Advanced Examples
 
 ### Array Access
 
 ```peg
-# Aggiungi a Primary
+# Add to Primary
 Primary: val:ArrayAccess | val:FunctionCall | ...
 
 ArrayAccess: base:Identifier (_ "[" _ index:Expression _ "]")+
@@ -499,76 +499,6 @@ StructDef: "STRUCT" _ structName:Identifier (_ field:Identifier)* _ "END"
 
 MakeStruct: "MAKE" _ structName:Identifier _ "(" _ args:ArgumentList? _ ")"
 ```
-
----
-
-## Tips & Best Practices
-
-### 1. Ordine delle Alternative
-
-```peg
-# SBAGLIATO: Identifier matcha prima di FunctionCall
-Primary: val:Identifier | val:FunctionCall
-
-# CORRETTO: FunctionCall ha priorità
-Primary: val:FunctionCall | val:Identifier
-```
-
-### 2. Lookahead per Keywords
-
-```peg
-# SBAGLIATO: "PRINT" matcha "PRINTER"
-Keyword: "PRINT" | "IF" | "END"
-
-# CORRETTO: Verifica che non ci siano altri caratteri
-Keyword: ("PRINT" | "IF" | "END") !(/[a-zA-Z0-9_]/)
-```
-
-### 3. Whitespace Consistente
-
-```peg
-# Sempre usare _ tra token
-IfStmt: "IF" _ cond:Expression _ "THEN" _ body:Statement+
-```
-
-### 4. Liste con head/tail
-
-```peg
-# Pattern standard per liste
-ParameterList: head:Identifier (_ "," _ tail:Identifier)*
-
-# extractList in ASTBuilder gestisce automaticamente
-```
-
-### 5. Evitare Conflitti di Nome
-
-```peg
-# PROBLEMA: 'name' è usato dal parser internamente
-StructDef: "STRUCT" _ name:Identifier  # Può causare errori
-
-# SOLUZIONE: Usa nomi diversi
-StructDef: "STRUCT" _ structName:Identifier
-```
-
----
-
-## Riferimenti
-
-- **Grammatica PESM completa**: `grammar/pesm.peg`
-- **Esempi linguaggi**: `examples/languages/`
-  - `basic/` - BASIC-like con FOR/NEXT
-  - `python-like/` - Python-like con indentazione
-  - `c-like/` - C-like con parentesi graffe
-  - `fortran/` - FORTRAN-like con DO/END DO
-- **ASTBuilder condiviso**: `src/Parser/ASTBuilder.php`
-- **Nodi AST**: `src/Parser/AST/Nodes.php`
-- **Compiler**: `src/Bytecode/Compiler.php`
-- **VM**: `src/Bytecode/VM.php`
-
----
-
-**Buon coding!** 🚀
-
 
 ---
 
@@ -673,6 +603,56 @@ $result = $engine->execute('
 
 ---
 
+## Tips & Best Practices
+
+### 1. Alternative Order
+
+```peg
+# WRONG: Identifier matches before FunctionCall
+Primary: val:Identifier | val:FunctionCall
+
+# CORRECT: FunctionCall has priority
+Primary: val:FunctionCall | val:Identifier
+```
+
+### 2. Lookahead for Keywords
+
+```peg
+# WRONG: "PRINT" matches "PRINTER"
+Keyword: "PRINT" | "IF" | "END"
+
+# CORRECT: Verify no other characters follow
+Keyword: ("PRINT" | "IF" | "END") !(/[a-zA-Z0-9_]/)
+```
+
+### 3. Consistent Whitespace
+
+```peg
+# Always use _ between tokens
+IfStmt: "IF" _ cond:Expression _ "THEN" _ body:Statement+
+```
+
+### 4. Lists with head/tail
+
+```peg
+# Standard pattern for lists
+ParameterList: head:Identifier (_ "," _ tail:Identifier)*
+
+# extractList in ASTBuilder handles automatically
+```
+
+### 5. Avoid Name Conflicts
+
+```peg
+# PROBLEM: 'name' is used internally by parser
+StructDef: "STRUCT" _ name:Identifier  # May cause errors
+
+# SOLUTION: Use different names
+StructDef: "STRUCT" _ structName:Identifier
+```
+
+---
+
 ## Best Practices
 
 ### Grammar Design
@@ -730,11 +710,18 @@ Check:
 
 ---
 
-## Resources
+## References
 
 - **PESM Grammar**: `grammar/pesm.peg` - Complete reference implementation
 - **AST Nodes**: `src/Parser/AST/Nodes.php` - All available node types
-- **Examples**: `examples/` - Working examples of custom languages
+- **Examples**: `examples/04-multi-language/` - Working examples of custom languages
+  - `basic/` - BASIC-like with FOR/NEXT
+  - `python-like/` - Python-like with indentation
+  - `c-like/` - C-like with braces
+  - `fortran/` - FORTRAN-like with DO/END DO
+- **ASTBuilder**: `src/Parser/ASTBuilder.php` - Universal AST builder
+- **Compiler**: `src/Bytecode/Compiler.php` - Bytecode compiler
+- **VM**: `src/Bytecode/VM.php` - Virtual machine
 - **Tests**: `tests/` - Test suite for reference
 
 ---
