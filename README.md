@@ -213,7 +213,7 @@ PESM provides 29 universal AST constructs that work with any grammar. See [Parse
 
 - **[Language Reference](docs/LANGUAGE_REFERENCE.md)** - Complete PESM syntax and features
 - **[Architecture Guide](docs/ARCHITECTURE.md)** - Component design and internals
-- **[Integration Guide](docs/INTEGRATION.md)** - How to embed PESM in your application
+- **[Integration Guide](docs/INTEGRATION_GUIDE.md)** - How to embed PESM in your application
 - **[Parser Guide](docs/PARSER_GUIDE.md)** - Creating custom DSLs
 - **[API Reference](docs/API_REFERENCE.md)** - ScriptEngine API documentation
 - **[Performance](docs/PERFORMANCE.md)** - Benchmarks and optimization tips
