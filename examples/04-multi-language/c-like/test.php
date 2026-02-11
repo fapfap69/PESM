@@ -9,12 +9,16 @@ require_once __DIR__ . '/../../../src/Parser/AST/Nodes.php';
 require_once __DIR__ . '/../../../src/Parser/AST/AdditionalNodes.php';
 require_once __DIR__ . '/../../../src/Bytecode/Compiler.php';
 require_once __DIR__ . '/../../../src/Bytecode/VM.php';
+require_once __DIR__ . '/../../../src/Runtime/GlobalContext.php';
+require_once __DIR__ . '/../../../src/Runtime/Commands.php';
 
 use CLIKE\CLIKEParser;
 use PESM\Parser\ASTBuilder;
 use PESM\Parser\ArrayToNodeConverter;
 use PESM\Bytecode\Compiler;
 use PESM\Bytecode\VM;
+use PESM\Runtime\GlobalContext;
+use PESM\Runtime\Commands;
 
 $code = 'n = 5;
 result = 1;
@@ -51,7 +55,9 @@ $bytecode = $compiler->compile($ast);
 echo "✅ Bytecode compiled\n";
 
 $vm = new VM();
-$result = $vm->execute($bytecode);
+$context = new GlobalContext();
+$commands = new Commands();
+$result = $vm->execute($bytecode, $context, [], null, null, $commands);
 
 if ($result->status === 'interrupted') {
     echo "OUTPUT: {$result->actionData}\n";

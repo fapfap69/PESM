@@ -49,8 +49,16 @@ $bytecode = $compiler->compile($ast);
 echo "✅ Bytecode compiled\n";
 
 // Execute
+require_once __DIR__ . '/../../../src/Runtime/GlobalContext.php';
+require_once __DIR__ . '/../../../src/Runtime/Commands.php';
+
+use PESM\Runtime\GlobalContext;
+use PESM\Runtime\Commands;
+
 $vm = new VM();
-$result = $vm->execute($bytecode);
+$context = new GlobalContext();
+$commands = new Commands();
+$result = $vm->execute($bytecode, $context, [], null, null, $commands);
 
 echo "Status: {$result->status}\n";
 if (!empty($result->variables)) {
