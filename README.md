@@ -2,6 +2,7 @@
 
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.0-blue.svg)](https://php.net)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![GitHub](https://img.shields.io/badge/github-fapfap69%2FPESM-blue.svg)](https://github.com/fapfap69/PESM)
 
 **A high-performance, embeddable scripting engine for PHP applications with bytecode compilation and interrupt/resume support.**
 
@@ -47,12 +48,12 @@ PESM is a standalone PHP component that provides a complete scripting language r
 ### Installation
 
 ```bash
-composer require infn/pesm
+composer require fapfap69/pesm
 ```
 
-Or manually copy the `src/` directory to your project.
+### Using the Default PESM Language
 
-### Basic Usage
+PESM comes with a pre-built scripting language ready to use. No grammar configuration needed:
 
 ```php
 <?php
@@ -81,10 +82,21 @@ if ($result['status'] === 'interrupted') {
 }
 ```
 
+**PESM Language Features:**
+- Control flow: IF/ELSE, WHILE, DO-WHILE, REPEAT-UNTIL, FOREACH, SWITCH/CASE
+- Loop control: BREAK, CONTINUE
+- Functions with local variables and return values
+- Arrays, objects, and STRUCT types
+- 19 built-in functions (String, Math, Array, Type, Utility)
+- Interrupt system: MESSAGE, ACCEPT, REFUSE, INPUT
+
+See [Language Reference](docs/LANGUAGE_REFERENCE.md) for complete syntax.
+
 ### Interrupt/Resume Pattern
 
+PESM supports long-running scripts with pause/resume capability:
+
 ```php
-// First execution - script pauses at MESSAGE
 $result = $engine->execute('
     counter = 0
     WHILE counter < 5
@@ -105,29 +117,17 @@ while ($result['status'] === 'interrupted') {
 }
 ```
 
-### Built-in Functions & Custom Commands
+### Custom Commands
+
+Extend the language with PHP functions:
 
 ```php
-// Using built-in functions (19 standard functions available)
-$result = $engine->execute('
-    text = "hello world"
-    upper = UPPER(text)           // "HELLO WORLD"
-    length = LEN(text)            // 11
-    
-    numbers = [1, 2, 3, 4, 5]
-    total = SUM(numbers)          // 15
-    count = COUNT(numbers)        // 5
-    
-    value = ABS(-42)              // 42
-    root = SQRT(16)               // 4
-');
-
-// Register custom PHP functions
+// Register custom PHP function
 $engine->registerCommand('DOUBLE', function($args) {
     return $args[0] * 2;
 });
 
-// Declare and use custom commands in scripts
+// Use in scripts
 $result = $engine->execute('
     COMMAND DOUBLE
     
@@ -136,139 +136,21 @@ $result = $engine->execute('
 ');
 ```
 
----
+### Creating Custom DSLs
 
-## Language Syntax
+PESM is a toolkit for building domain-specific languages. You can create your own grammar:
 
-### Variables & Expressions
-```javascript
-x = 10
-y = 20
-z = x + y * 2        // z = 50
-name = "Mario"
-greeting = "Hello " + name
-```
+1. **Define your grammar** in PEG format (see `grammar/pesm.peg` as reference)
+2. **Build the parser**: `php vendor/fapfap69/pesm/bin/build-parser.php your-grammar.peg`
+3. **Use your language** with the same ScriptEngine API
 
-### Control Flow
-```javascript
-// IF-ELSE
-IF x > 10
-    MESSAGE "Greater"
-ELSE
-    MESSAGE "Less or equal"
-END
+PESM provides 29 universal AST constructs that work with any grammar. See [Parser Guide](docs/PARSER_GUIDE.md) for details.
 
-// SWITCH-CASE
-SWITCH status
-    CASE 1
-        MESSAGE "Pending"
-    CASE 2
-        MESSAGE "Approved"
-    DEFAULT
-        MESSAGE "Unknown"
-END
-
-// WHILE loop
-counter = 0
-WHILE counter < 5
-    counter = counter + 1
-END
-
-// DO-WHILE (executes at least once)
-DO
-    INPUT "Enter positive: " n
-WHILE n <= 0
-
-// REPEAT-UNTIL (inverted condition)
-REPEAT
-    x = x + 1
-UNTIL x >= 10
-
-// FOREACH with range
-FOREACH i = 1 TO 10
-    sum = sum + i
-END
-
-// FOREACH with array
-items = [10, 20, 30]
-FOREACH item IN items
-    total = total + item
-END
-```
-
-### Loop Control
-```javascript
-// BREAK - exit loop
-WHILE true
-    IF condition
-        BREAK
-    END
-END
-
-// CONTINUE - skip to next iteration
-FOREACH i = 1 TO 10
-    IF i % 2 == 0
-        CONTINUE
-    END
-    sum = sum + i  // Only odd numbers
-END
-```
-
-### Functions
-```javascript
-FUNCTION add(a, b)
-    result = a + b
-    RETURN result
-END
-
-x = add(10, 20)  // x = 30
-```
-
-### Arrays & Objects
-```javascript
-// Arrays
-numbers = [1, 2, 3, 4, 5]
-matrix = [[1, 2], [3, 4]]
-value = matrix[0][1]  // 2
-matrix[1][0] = 99     // Nested assignment
-
-// Objects
-user = {"name": "Mario", "age": 30}
-
-// STRUCT - Custom data types
-STRUCT Person name age city
-END
-
-// Instantiation with positional args
-p1 = MAKE Person("Mario", 30, "Rome")
-
-// Instantiation with named args
-p2 = MAKE Person(name: "Luigi", age: 25, city: "Milan")
-
-// Property access with dot notation
-MESSAGE p1.name      // "Mario"
-MESSAGE p1.age       // 30
-
-// Nested structs
-STRUCT Address city zip
-END
-
-STRUCT Employee name address
-END
-
-addr = MAKE Address("Rome", "00100")
-emp = MAKE Employee("Mario", addr)
-MESSAGE emp.address.city  // "Rome"
-```
-
-### GOTO & Labels
-```javascript
-x = 1
-GOTO skip
-x = 999
-skip:
-x = x + 10  // x = 11
-```
+**Examples included:**
+- BASIC-like language (`examples/04-multi-language/basic/`)
+- C-like language (`examples/04-multi-language/c-like/`)
+- Python-like language (`examples/04-multi-language/python-like/`)
+- FORTRAN-like language (`examples/04-multi-language/fortran/`)
 
 ---
 
@@ -329,9 +211,12 @@ x = x + 10  // x = 11
 
 ## Documentation
 
+- **[Language Reference](docs/LANGUAGE_REFERENCE.md)** - Complete PESM syntax and features
 - **[Architecture Guide](docs/ARCHITECTURE.md)** - Component design and internals
 - **[Integration Guide](docs/INTEGRATION.md)** - How to embed PESM in your application
-- **[Bytecode VM](docs/BYTECODE_VM_CONTEXT.md)** - Virtual machine implementation details
+- **[Parser Guide](docs/PARSER_GUIDE.md)** - Creating custom DSLs
+- **[API Reference](docs/API_REFERENCE.md)** - ScriptEngine API documentation
+- **[Performance](docs/PERFORMANCE.md)** - Benchmarks and optimization tips
 
 ---
 
@@ -428,13 +313,13 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ## Credits
 
 **Author**: Antonio Franco - INFN Sez. di Bari  
-**Year**: 2026
+**Year**: 2025
 
 ---
 
 ## Support
 
-For issues, questions, or feature requests, please open an issue on the project repository.
+For issues, questions, or feature requests, please open an issue on the [GitHub repository](https://github.com/fapfap69/PESM/issues).
 
 ---
 

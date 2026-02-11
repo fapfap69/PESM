@@ -35,4 +35,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Build Tools**: Parser builder, grammar analyzer, converter generator
 - **Examples**: Basic usage, web integration, workflow automation, multi-language DSL
 
-[1.0.0]: https://github.com/fap/pesm/releases/tag/v1.0.0
+[1.0.0]: https://github.com/fapfap69/PESM/releases/tag/v1.0.0

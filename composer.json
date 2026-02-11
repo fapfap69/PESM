@@ -1,9 +1,10 @@
 {
-    "name": "fap/pesm",
+    "name": "fapfap69/pesm",
     "description": "PHP Embedded Scripts Manager - A high-performance scripting engine with bytecode compilation and DSL toolkit",
     "type": "library",
     "keywords": ["scripting", "dsl", "bytecode", "vm", "parser", "workflow", "embedded"],
     "license": "MIT",
+    "homepage": "https://github.com/fapfap69/PESM",
     "authors": [
         {
             "name": "Antonio Franco",
@@ -11,6 +12,10 @@
             "role": "Developer"
         }
     ],
+    "support": {
+        "issues": "https://github.com/fapfap69/PESM/issues",
+        "source": "https://github.com/fapfap69/PESM"
+    },
     "require": {
         "php": ">=8.0",
         "hafriedlander/php-peg": "^0.7"
