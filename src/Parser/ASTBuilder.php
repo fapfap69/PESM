@@ -34,6 +34,12 @@ class ASTBuilder
         return isset($node['alt']) ? $this->build($node['alt']) : $node;
     }
 
+    protected function buildComment(array $node): array
+    {
+        // Comments are ignored - return empty node
+        return ['_matchrule' => 'CommentNode'];
+    }
+
     protected function buildAssignment(array $node): array
     {
         $var = $this->build($node['var']);

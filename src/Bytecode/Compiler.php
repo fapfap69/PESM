@@ -80,6 +80,12 @@ class Compiler {
         }
     }
     
+    // === Comments ===
+    
+    private function visitCommentNode(\PESM\Parser\AST\CommentNode $node): void {
+        // Comments are ignored - no bytecode emitted
+    }
+    
     // === Literals ===
     
     private function visitLiteralNode(\PESM\Parser\AST\LiteralNode $node): void {

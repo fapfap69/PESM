@@ -3,9 +3,11 @@
 # PESM Grammar - Pure Syntax (No AST annotations)
 # Parse tree will be converted to AST by external ASTBuilder
 
-Program: _ stmt:Statement (_ stmt:Statement)*
+Program: _ stmt:Statement (_ stmt:Statement)* _ !/./
 
-Statement: alt:CommandDecl _ | alt:StructDef _ | alt:FunctionDef _ | alt:IfStatement _ | alt:SwitchStatement _ | alt:DoWhileStatement _ | alt:RepeatUntilStatement _ | alt:WhileStatement _ | alt:ForeachInStmt _ | alt:ForeachRangeStmt _ | alt:InterruptWithVarStmt _ | alt:InterruptSimpleStmt _ | alt:ReturnStmt _ | alt:BreakStmt _ | alt:ContinueStmt _ | alt:LabelStmt _ | alt:GotoStmt _ | alt:Assignment _
+Statement: alt:Comment _ | alt:CommandDecl _ | alt:StructDef _ | alt:FunctionDef _ | alt:IfStatement _ | alt:SwitchStatement _ | alt:DoWhileStatement _ | alt:RepeatUntilStatement _ | alt:WhileStatement _ | alt:ForeachInStmt _ | alt:ForeachRangeStmt _ | alt:InterruptWithVarStmt _ | alt:InterruptSimpleStmt _ | alt:ReturnStmt _ | alt:BreakStmt _ | alt:ContinueStmt _ | alt:LabelStmt _ | alt:GotoStmt _ | alt:Assignment _
+
+Comment: '//' /[^\n]+/
 
 FunctionDef: "FUNCTION" _ funcName:Identifier _ "(" _ params:ParameterList? _ ")" _ body:Statement+ "END"
 

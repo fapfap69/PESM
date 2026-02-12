@@ -232,7 +232,17 @@ class ScriptEngine {
         $result = $parser->match_Program();
         
         if ($result === false) {
-            throw new \Exception("Parse error in script");
+            // Use reflection to access protected pos property
+            $reflection = new \ReflectionObject($parser);
+            $posProperty = $reflection->getProperty('pos');
+            $posProperty->setAccessible(true);
+            $pos = $posProperty->getValue($parser);
+            
+            // Calculate line and column from parser position
+            $lines = explode("\n", substr($script, 0, $pos));
+            $line = count($lines);
+            $col = strlen(end($lines)) + 1;
+            throw new \Exception("Parse error in script at line $line, column $col");
         }
         
         // Build AST array using ASTBuilder

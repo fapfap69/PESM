@@ -3,6 +3,28 @@
 namespace PESM\Parser\AST;
 
 /**
+ * CommentNode - Comments are ignored during compilation
+ */
+class CommentNode extends Node
+{
+    public function __construct()
+    {
+        parent::__construct();
+    }
+    
+    public function execute($context, $flow, $commands, $pc = null)
+    {
+        // Comments do nothing
+        return null;
+    }
+    
+    public function getChildren(): array
+    {
+        return [];
+    }
+}
+
+/**
  * InputMaskNode - INPUT_MASK command
  */
 class InputMaskNode extends Node

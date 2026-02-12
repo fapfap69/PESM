@@ -46,6 +46,7 @@ try {
     
     $builder = new ParserBuilder(__DIR__ . '/..');
     $testMode = in_array('--test', $argv);
+    $editorMode = in_array('--editor', $argv);
     
     // Step 1: Validate PEG
     Console::info("Validating PEG grammar...");
@@ -86,6 +87,20 @@ try {
     Console::info("Generated files:");
     Console::info("  - src/Parser/GeneratedParser.php");
     Console::info("  - src/Parser/GeneratedConverter.php");
+
+    if ($editorMode) {
+        Console::info('Generating editor artifacts...');
+        // generate Monarch + editor scaffold
+        $grammar = __DIR__ . '/../grammar/pesm.peg';
+        $out = __DIR__ . '/../examples/editor';
+        try {
+            $gen = new PESM\Parser\MonarchGenerator($grammar);
+            $gen->generate($out);
+            Console::success('Editor artifacts generated in examples/editor/');
+        } catch (Exception $e) {
+            Console::warning('Failed to generate editor artifacts: ' . $e->getMessage());
+        }
+    }
     
 } catch (Exception $e) {
     echo PHP_EOL;
