@@ -2,6 +2,10 @@
 /vendor/
 composer.lock
 
+# Generated artifacts in grammar directory
+/grammar/editor/
+/grammar/parser/
+
 # IDE
 .idea/
 .vscode/

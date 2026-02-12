@@ -3,9 +3,27 @@
 /**
  * PESM Parser Builder
  * 
- * Validates BNF grammar, converts to PEG, generates parser
+ * Validates PEG grammar, generates parser and editor artifacts
  * 
- * Usage: php bin/build-parser.php [--test]
+ * Usage: 
+ *   php bin/build-parser.php [--source-path=path/to/grammar.peg] [--install] [--test]
+ * 
+ * Options:
+ *   --source-path=PATH   Path to PEG grammar file (default: grammar/pesm.peg)
+ *   --install            Install generated parser files to src/Parser/ (for component development)
+ *   --test               Run parser tests after generation
+ * 
+ * Output:
+ *   Always generates in grammar directory:
+ *     - parser/GeneratedParser.php
+ *     - parser/GeneratedConverter.php  
+ *     - editor/monarch.generated.js
+ *     - editor/validate.php
+ *     - editor/index.html
+ *     - editor/editor.js
+ * 
+ *   With --install flag:
+ *     - Copies parser files to src/Parser/ (for PESM component itself)
  */
 
 error_reporting(E_ERROR | E_PARSE);
@@ -39,14 +57,43 @@ class Console {
     }
 }
 
+// Parse command line arguments
+$sourcePath = null;
+$installMode = false;
+$testMode = false;
+
+foreach ($argv as $arg) {
+    if (strpos($arg, '--source-path=') === 0) {
+        $sourcePath = substr($arg, strlen('--source-path='));
+    } elseif ($arg === '--install') {
+        $installMode = true;
+    } elseif ($arg === '--test') {
+        $testMode = true;
+    }
+}
+
+// Default source path
+if (!$sourcePath) {
+    $sourcePath = __DIR__ . '/../grammar/pesm.peg';
+}
+
+// Validate source path
+if (!file_exists($sourcePath)) {
+    Console::error("Grammar file not found: $sourcePath");
+    exit(1);
+}
+
+$grammarDir = dirname($sourcePath);
+$parserOutDir = $grammarDir . '/parser';
+$editorOutDir = $grammarDir . '/editor';
+
 // Main execution
 try {
     Console::info("PESM Parser Builder v1.0");
+    Console::info("Source: $sourcePath");
     echo PHP_EOL;
     
     $builder = new ParserBuilder(__DIR__ . '/..');
-    $testMode = in_array('--test', $argv);
-    $editorMode = in_array('--editor', $argv);
     
     // Step 1: Validate PEG
     Console::info("Validating PEG grammar...");
@@ -56,7 +103,7 @@ try {
     }
     Console::success("PEG grammar is valid");
     
-    // Step 2: Generate parser from PEG
+    // Step 2: Generate parser from PEG (to src/Parser/ temporarily)
     Console::info("Generating parser from PEG...");
     if (!$builder->generateParser()) {
         Console::error("Parser generation failed");
@@ -72,7 +119,50 @@ try {
     }
     Console::success("Converter generated successfully");
     
-    // Step 4: Test parser (optional)
+    // Step 4: Copy parser files to grammar/parser/
+    Console::info("Copying parser files to grammar/parser/...");
+    if (!is_dir($parserOutDir)) {
+        mkdir($parserOutDir, 0755, true);
+    }
+    
+    $srcParser = __DIR__ . '/../src/Parser/GeneratedParser.php';
+    $srcConverter = __DIR__ . '/../src/Parser/GeneratedConverter.php';
+    $dstParser = $parserOutDir . '/GeneratedParser.php';
+    $dstConverter = $parserOutDir . '/GeneratedConverter.php';
+    
+    if (file_exists($srcParser)) {
+        copy($srcParser, $dstParser);
+    }
+    if (file_exists($srcConverter)) {
+        copy($srcConverter, $dstConverter);
+    }
+    Console::success("Parser files copied to grammar/parser/");
+    
+    // Step 5: Generate editor artifacts
+    Console::info('Generating editor artifacts...');
+    try {
+        $gen = new PESM\Parser\MonarchGenerator($sourcePath);
+        $gen->generate($editorOutDir);
+        Console::success('Editor artifacts generated in grammar/editor/');
+    } catch (Exception $e) {
+        Console::warning('Failed to generate editor artifacts: ' . $e->getMessage());
+    }
+    
+    // Step 6: Install to src/Parser/ if --install flag
+    if (!$installMode) {
+        // Remove from src/Parser/ if not installing
+        if (file_exists($srcParser)) {
+            unlink($srcParser);
+        }
+        if (file_exists($srcConverter)) {
+            unlink($srcConverter);
+        }
+        Console::info("Parser files NOT installed to src/Parser/ (use --install to install)");
+    } else {
+        Console::success("Parser files installed to src/Parser/");
+    }
+    
+    // Step 7: Test parser (optional)
     if ($testMode) {
         Console::info("Testing generated parser...");
         if (!$builder->testParser()) {
@@ -85,21 +175,16 @@ try {
     echo PHP_EOL;
     Console::success("Build completed!");
     Console::info("Generated files:");
-    Console::info("  - src/Parser/GeneratedParser.php");
-    Console::info("  - src/Parser/GeneratedConverter.php");
-
-    if ($editorMode) {
-        Console::info('Generating editor artifacts...');
-        // generate Monarch + editor scaffold
-        $grammar = __DIR__ . '/../grammar/pesm.peg';
-        $out = __DIR__ . '/../examples/editor';
-        try {
-            $gen = new PESM\Parser\MonarchGenerator($grammar);
-            $gen->generate($out);
-            Console::success('Editor artifacts generated in examples/editor/');
-        } catch (Exception $e) {
-            Console::warning('Failed to generate editor artifacts: ' . $e->getMessage());
-        }
+    Console::info("  - $parserOutDir/GeneratedParser.php");
+    Console::info("  - $parserOutDir/GeneratedConverter.php");
+    Console::info("  - $editorOutDir/monarch.generated.js");
+    Console::info("  - $editorOutDir/validate.php");
+    Console::info("  - $editorOutDir/index.html");
+    Console::info("  - $editorOutDir/editor.js");
+    
+    if ($installMode) {
+        Console::info("  - src/Parser/GeneratedParser.php (installed)");
+        Console::info("  - src/Parser/GeneratedConverter.php (installed)");
     }
     
 } catch (Exception $e) {
