@@ -287,7 +287,6 @@ while ($result['status'] === 'interrupted') {
         $result = $engine->resume(
             $script,
             $result['state'],
-            $result['resumeFrom'],
             $userInput
         );
     }
@@ -373,7 +372,6 @@ class WorkflowEngine {
         $result = $this->engine->resume(
             $state['script'],
             $state['state'],
-            $state['resumeFrom'],
             $userResponse
         );
         
@@ -529,7 +527,6 @@ $row = $stmt->fetch();
 $result = $engine->resume(
     $script,
     json_decode($row['state'], true),
-    $row['resume_from'],
     $userInput
 );
 ```

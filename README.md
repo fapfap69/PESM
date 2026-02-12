@@ -97,18 +97,20 @@ See [Language Reference](docs/LANGUAGE_REFERENCE.md) for complete syntax.
 PESM supports long-running scripts with pause/resume capability:
 
 ```php
-$result = $engine->execute('
+$script = '
     counter = 0
     WHILE counter < 5
         counter = counter + 1
         MESSAGE "Count: " + counter
     END
-');
+';
+
+$result = $engine->execute($script);
 
 // Resume execution after handling interrupt
 while ($result['status'] === 'interrupted') {
     echo $result['actionData'] . "\n";
-    
+
     $result = $engine->resume(
         $script,
         $result['state'],
@@ -116,6 +118,21 @@ while ($result['status'] === 'interrupted') {
     );
 }
 ```
+
+### Return Values
+
+The `execute()` and `resume()` methods return an associative array describing the execution state. Typical keys:
+
+- `status`: string — one of `success`, `interrupted`, or `error`.
+- `state`: mixed — serialized VM state usable by `resume()` (present when `interrupted`).
+- `resumeFrom`: mixed — instruction pointer or label indicating where to resume (present when `interrupted`).
+- `action`: string — interrupt action type (for example `message`, `input`, `accept`, `refuse`).
+- `actionData`: mixed — data associated with the interrupt (for example the `MESSAGE` text or input prompt).
+- `expectsReturn`: bool — whether the interrupt expects a return value (INPUT).
+- `targetVar`: string|null — variable name that will receive `INPUT` value (when applicable).
+- `variables`: array — snapshot of global variables at the interruption point.
+- `error`: string — error message when `status` is `error`.
+
 
 ### Custom Commands
 
@@ -155,6 +172,18 @@ PESM provides 29 universal AST constructs that work with any grammar. See [Parse
 ---
 
 ## Architecture
+
+## API At A Glance
+
+Quick reference to the most commonly used `ScriptEngine` methods:
+
+- `execute(string $script, array $variables = [], ?array $state = null, ?int $resumeFrom = null, mixed $returnValue = null): array` — Parse, compile and execute a script. Returns execution `Result` as array.
+- `resume(string $script, array $state, mixed $returnValue = null, ?string $targetVar = null): array` — Resume execution after an interrupt using the provided VM `state`.
+- `compile(string $script): array` — Compile script to bytecode (array of `Instruction` objects).
+- `executeFromBytecode(array $bytecode, array $variables = [], ?array $state = null, ?int $resumeFrom = null, mixed $returnValue = null): array` — Execute pre-compiled bytecode.
+- `registerCommand(string $name, callable $handler): void` — Register a PHP function as a COMMAND available to scripts.
+- `getContext(): Runtime\GlobalContext` — Access the runtime global context and persisted variables.
+
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -217,6 +246,7 @@ PESM provides 29 universal AST constructs that work with any grammar. See [Parse
 - **[Parser Guide](docs/PARSER_GUIDE.md)** - Creating custom DSLs
 - **[API Reference](docs/API_REFERENCE.md)** - ScriptEngine API documentation
 - **[Performance](docs/PERFORMANCE.md)** - Benchmarks and optimization tips
+ - **Changelog**: [CHANGELOG.md](CHANGELOG.md)
 
 ---
 

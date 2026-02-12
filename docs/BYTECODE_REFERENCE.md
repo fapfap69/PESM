@@ -328,12 +328,12 @@ throw new InterruptException(
 
 ### Resume dopo Interrupt
 ```
-1. ScriptEngine.resume(script, state, resumeFrom, returnValue?)
+1. ScriptEngine.resume(script, state, returnValue = null, targetVar = null)
 2. Compiler: usa bytecode cached
-3. VM: execute(bytecode, state, resumeFrom, returnValue)
+3. VM: execute(bytecode, state, returnValue)
 4. VM restore: stack, framePointer, globals, iteratorStack
 5. Se returnValue: push su stack (per INT_VALUE)
-6. VM loop: pc=resumeFrom → continua
+6. VM loop: pc (from state) → continua
 ```
 
 ---
