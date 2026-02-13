@@ -334,12 +334,16 @@ Create file `grammar/basic.peg` with the grammar above.
 ### 2. Generate parser and converter
 
 ```bash
-php bin/build-parser.php
+php bin/build-parser.php --source-path=grammar/basic.peg
 ```
 
 This command automatically generates:
-1. `src/Parser/GeneratedParser.php` - PEG parser specific to your grammar
-2. `src/Parser/GeneratedConverter.php` - Converter specific to your grammar
+1. `grammar/parser/GeneratedParser.php` - PEG parser specific to your grammar
+2. `grammar/parser/GeneratedConverter.php` - Converter specific to your grammar
+3. `grammar/editor/` - Monaco editor with syntax highlighting and validation
+4. `grammar/comprehensive_test.basic` - Auto-generated test script covering all language features
+
+**Note**: The `--source-path` parameter specifies which grammar to build. Without it, defaults to `grammar/pesm.peg`.
 
 ### 3. Universal ASTBuilder (already present)
 
@@ -371,10 +375,12 @@ BUILD TIME (one-time):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 grammar/basic.peg
     ↓
-php bin/build-parser.php
+php bin/build-parser.php --source-path=grammar/basic.peg
     ↓
-✅ GeneratedParser.php (specific to basic.peg)
-✅ GeneratedConverter.php (specific to basic.peg)
+✅ grammar/parser/GeneratedParser.php (specific to basic.peg)
+✅ grammar/parser/GeneratedConverter.php (specific to basic.peg)
+✅ grammar/editor/ (Monaco editor artifacts)
+✅ grammar/comprehensive_test.basic (auto-generated test)
 ❌ ASTBuilder.php (universal - already exists, never regenerated)
 
 
@@ -468,17 +474,35 @@ See `examples/04-multi-language/basic/` for a working example:
 
 ```
 examples/04-multi-language/basic/
-├── basic.peg           # BASIC grammar
-├── BASICParser.php     # Generated parser
-├── test.php            # Language test
-└── example.bas         # BASIC example code
+├── basic.peg                      # BASIC grammar
+├── parser/                        # Generated parser files
+│   ├── GeneratedParser.php
+│   └── GeneratedConverter.php
+├── editor/                        # Monaco editor
+│   ├── monarch.generated.js
+│   ├── validate.php
+│   ├── index.html
+│   └── editor.js
+├── comprehensive_test.basic       # Auto-generated test
+├── example.bas                    # Manual example code
+└── test.php                       # Test runner
 ```
 
-**Run:**
+**Generate all artifacts:**
 ```bash
 cd examples/04-multi-language/basic
-php build.php           # Generate parser
-php test.php            # Test the language
+php ../../../bin/build-parser.php --source-path=basic.peg
+```
+
+**Test the language:**
+```bash
+php test.php
+```
+
+**Try the editor:**
+```bash
+php -S localhost:8000 editor/
+# Open http://localhost:8000 in browser
 ```
 
 ---

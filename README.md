@@ -163,16 +163,21 @@ $result = $engine->execute('
 PESM is a toolkit for building domain-specific languages. You can create your own grammar:
 
 1. **Define your grammar** in PEG format (see `grammar/pesm.peg` as reference)
-2. **Build the parser**: `php vendor/fapfap69/pesm/bin/build-parser.php your-grammar.peg`
+2. **Build the parser**: `php vendor/fapfap69/pesm/bin/build-parser.php --source-path=your-grammar.peg`
 3. **Use your language** with the same ScriptEngine API
+
+The build process generates:
+- `parser/` - Parser and converter files
+- `editor/` - Monaco editor with syntax highlighting
+- `comprehensive_test.<ext>` - Auto-generated test script
 
 PESM provides 33 universal AST constructs that work with any grammar. See [Parser Guide](docs/PARSER_GUIDE.md) for details.
 
 **Examples included:**
-- BASIC-like language (`examples/04-multi-language/basic/`)
-- C-like language (`examples/04-multi-language/c-like/`)
-- Python-like language (`examples/04-multi-language/python-like/`)
-- FORTRAN-like language (`examples/04-multi-language/fortran/`)
+- BASIC-like language (`examples/04-multi-language/basic/`) - Complete with parser, editor, and tests
+- C-like language (`examples/04-multi-language/c-like/`) - Complete with parser, editor, and tests
+- Python-like language (`examples/04-multi-language/python-like/`) - Complete with parser, editor, and tests
+- FORTRAN-like language (`examples/04-multi-language/fortran/`) - Complete with parser, editor, and tests
 
 ---
 
