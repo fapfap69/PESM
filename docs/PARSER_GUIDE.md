@@ -160,9 +160,12 @@ InputStmt: "INPUT" _ var:Identifier
 
 **Test**:
 ```basic
+// Variable declarations
 LET x = 10
 LET y = 20
-PRINT x + y
+
+// Print sum
+PRINT x + y  // Output: 30
 ```
 
 ---
@@ -186,9 +189,10 @@ Expression: val:Comparison
 
 **Test**:
 ```basic
+// Check value range
 LET x = 10
 IF x > 5 THEN
-    PRINT "Large"
+    PRINT "Large"  // This will execute
 ELSE
     PRINT "Small"
 END
@@ -217,11 +221,12 @@ WhileStmt: "WHILE" _ cond:Expression _ body:Statement+ "END"
 
 **Test**:
 ```basic
+// Calculate sum from 1 to 10
 LET sum = 0
 FOR i = 1 TO 10
-    LET sum = sum + i
+    LET sum = sum + i  // Add each number
 NEXT
-PRINT sum
+PRINT sum  // Output: 55
 ```
 
 ---
@@ -244,12 +249,14 @@ ArgumentList: head:Expression (_ "," _ tail:Expression)*
 
 **Test**:
 ```basic
+// Define addition function
 DEF add(a, b)
     LET result = a + b
     PRINT result
 END
 
-add(10, 20)
+// Call function
+add(10, 20)  // Output: 30
 ```
 
 ---
@@ -261,9 +268,12 @@ add(10, 20)
 
 # MINIMAL-BASIC Grammar
 
-Program: _ stmt:Statement (_ stmt:Statement)*
+Program: _ stmt:Statement (_ stmt:Statement)* _ !/./
 
-Statement: alt:FunctionDef _ | alt:ForStmt _ | alt:WhileStmt _ | alt:IfStmt _ | alt:PrintStmt _ | alt:InputStmt _ | alt:LetStmt _
+Statement: alt:Comment _ | alt:FunctionDef _ | alt:ForStmt _ | alt:WhileStmt _ | alt:IfStmt _ | alt:PrintStmt _ | alt:InputStmt _ | alt:LetStmt _
+
+# Comments
+Comment: '//' /[^\n]+/
 
 # Statements
 LetStmt: "LET" _ var:Identifier _ "=" _ expr:Expression
@@ -334,7 +344,7 @@ This command automatically generates:
 ### 3. Universal ASTBuilder (already present)
 
 PESM includes a **universal ASTBuilder** (`src/Parser/ASTBuilder.php`) that:
-- Supports all 29 PESM AST constructs
+- Supports all 33 PESM AST constructs (29 core + 4 additional)
 - Works with any grammar using these constructs
 - **Never regenerated** - written once and works for all grammars
 
@@ -374,7 +384,7 @@ Script
     ↓
 GeneratedParser (specific)
     ↓
-ASTBuilder (universal - 29 constructs)
+ASTBuilder (universal - 33 constructs)
     ↓
 ArrayToNodeConverter
     ↓

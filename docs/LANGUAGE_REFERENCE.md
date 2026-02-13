@@ -369,7 +369,16 @@ x = x + 10  // x = 11
 
 ## Comments
 
-PESM does not have built-in comments. Use external documentation.
+### Single-Line Comments
+```javascript
+// This is a comment
+x = 10  // Inline comment
+
+// Comments are ignored during execution
+// Use them to document your code
+```
+
+**Note**: Multi-line comments are not yet supported.
 
 ## Reserved Words
 
@@ -383,29 +392,29 @@ AND OR NOT END IF TO IN BREAK CONTINUE
 
 ### Complete Script
 ```javascript
-// Define STRUCT
+// Define custom data structure
 STRUCT Person name age
 END
 
-// Define function
+// Define greeting function
 FUNCTION greet(person)
     MESSAGE "Hello " + person.name
     RETURN 1
 END
 
 // Main logic
-person = MAKE Person("Mario", 30)
+person = MAKE Person("Mario", 30)  // Create person instance
 result = greet(person)
 
-// Loop
+// Loop through odd numbers
 FOREACH i = 1 TO 5
     IF i % 2 == 0
-        CONTINUE
+        CONTINUE  // Skip even numbers
     END
     MESSAGE "Odd: " + i
 END
 
-// Conditional
+// Age verification
 IF person.age >= 18
     ACCEPT "adult"
 ELSE

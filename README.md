@@ -65,15 +65,18 @@ $engine = new ScriptEngine();
 
 // Execute a simple script
 $result = $engine->execute('
+    // Variable declarations
     name = "World"
     age = 25
     
+    // Age verification
     IF age >= 18
         status = "Adult"
     ELSE
         status = "Minor"
     END
     
+    // Display result
     MESSAGE "Hello " + name + "! Status: " + status
 ');
 
@@ -83,6 +86,7 @@ if ($result['status'] === 'interrupted') {
 ```
 
 **PESM Language Features:**
+- Single-line comments with `//`
 - Control flow: IF/ELSE, WHILE, DO-WHILE, REPEAT-UNTIL, FOREACH, SWITCH/CASE
 - Loop control: BREAK, CONTINUE
 - Functions with local variables and return values
@@ -98,10 +102,11 @@ PESM supports long-running scripts with pause/resume capability:
 
 ```php
 $script = '
+    // Counter loop with interrupts
     counter = 0
     WHILE counter < 5
         counter = counter + 1
-        MESSAGE "Count: " + counter
+        MESSAGE "Count: " + counter  // Pause here
     END
 ';
 
@@ -146,10 +151,10 @@ $engine->registerCommand('DOUBLE', function($args) {
 
 // Use in scripts
 $result = $engine->execute('
-    COMMAND DOUBLE
+    COMMAND DOUBLE  // Declare custom command
     
     x = 21
-    result = DOUBLE(x)  // 42
+    result = DOUBLE(x)  // Returns 42
 ');
 ```
 
@@ -161,7 +166,7 @@ PESM is a toolkit for building domain-specific languages. You can create your ow
 2. **Build the parser**: `php vendor/fapfap69/pesm/bin/build-parser.php your-grammar.peg`
 3. **Use your language** with the same ScriptEngine API
 
-PESM provides 29 universal AST constructs that work with any grammar. See [Parser Guide](docs/PARSER_GUIDE.md) for details.
+PESM provides 33 universal AST constructs that work with any grammar. See [Parser Guide](docs/PARSER_GUIDE.md) for details.
 
 **Examples included:**
 - BASIC-like language (`examples/04-multi-language/basic/`)
