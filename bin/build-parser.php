@@ -148,6 +148,22 @@ try {
         Console::warning('Failed to generate editor artifacts: ' . $e->getMessage());
     }
     
+    // Step 5.5: Generate test script
+    Console::info('Generating comprehensive test script...');
+    try {
+        $testGen = new PESM\Parser\TestScriptGenerator($sourcePath);
+        $testScript = $testGen->generate();
+        
+        // Determine file extension from grammar filename
+        $grammarName = pathinfo($sourcePath, PATHINFO_FILENAME);
+        $testFile = $grammarDir . '/comprehensive_test.' . $grammarName;
+        
+        file_put_contents($testFile, $testScript);
+        Console::success("Test script generated: $testFile");
+    } catch (Exception $e) {
+        Console::warning('Failed to generate test script: ' . $e->getMessage());
+    }
+    
     // Step 6: Install to src/Parser/ if --install flag
     if (!$installMode) {
         // Remove from src/Parser/ if not installing
@@ -181,6 +197,9 @@ try {
     Console::info("  - $editorOutDir/validate.php");
     Console::info("  - $editorOutDir/index.html");
     Console::info("  - $editorOutDir/editor.js");
+    
+    $grammarName = pathinfo($sourcePath, PATHINFO_FILENAME);
+    Console::info("  - $grammarDir/comprehensive_test.$grammarName");
     
     if ($installMode) {
         Console::info("  - src/Parser/GeneratedParser.php (installed)");
