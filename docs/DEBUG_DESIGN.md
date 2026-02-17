@@ -195,21 +195,29 @@ private function getLocalVariables(): array {
 1. **Debug Pauses**: breakpoint, step
 2. **Script Interrupts**: MESSAGE, INPUT, ACCEPT, REFUSE
 
-**Solution: Unified 'paused' Status**
+**Solution: Unified 'paused' Status with Debug Info**
 
 ```php
 public function execute(..., ?string $stepMode = null): Result {
     try {
         while ($this->pc < count($this->bytecode)) {
+            $instr = $this->bytecode[$this->pc];
+            
             // 1. Check breakpoint BEFORE execution
             if ($this->debugMode && $this->isBreakpoint($this->pc)) {
                 return $this->createPausedResult('breakpoint');
             }
             
             // 2. Execute instruction (may throw InterruptException)
-            $this->executeInstruction($instr);
+            try {
+                $this->executeInstruction($instr);
+            } catch (InterruptException $e) {
+                // Interrupt during execution
+                // Include debugInfo if in debug mode!
+                return $this->createPausedResult('interrupt', $e);
+            }
             
-            // 3. Check step mode AFTER execution
+            // 3. Check step mode AFTER execution (only if no interrupt)
             if ($stepMode === 'step_into') {
                 return $this->createPausedResult('step');
             }
@@ -217,12 +225,13 @@ public function execute(..., ?string $stepMode = null): Result {
         
         return new Result('success', ...);
         
-    } catch (InterruptException $e) {
-        // 4. Script interrupt (MESSAGE, INPUT, etc.)
-        return $this->createPausedResult('interrupt', $e);
+    } catch (\Exception $e) {
+        return new Result('error', error: $e->getMessage());
     }
 }
 ```
+
+**Key Point**: Interrupt is caught INSIDE the loop, so debugInfo can be added.
 
 **Unified Result Structure:**
 
@@ -235,28 +244,48 @@ private function createPausedResult(
         'status' => 'paused',
         'reason' => $reason,  // 'breakpoint', 'step', 'interrupt'
         'variables' => $this->globals->variables,
-        'state' => ['stack' => $this->stack, 'pc' => $this->pc]
+        'state' => [
+            'stack' => $this->stack,
+            'pc' => $this->pc,
+            'framePointer' => $this->framePointer
+        ]
     ];
     
-    // Add debug info for breakpoint/step
-    if ($reason === 'breakpoint' || $reason === 'step') {
+    // ALWAYS add debugInfo in debug mode (even for interrupts!)
+    if ($this->debugMode) {
         $result['debugInfo'] = [
             'pc' => $this->pc,
+            'instruction' => $this->bytecode[$this->pc] ?? null,
             'line' => $this->sourceMap[$this->pc] ?? null,
-            'callStack' => $this->getCallStack()
+            'stack' => $this->stack,
+            'stackPointer' => count($this->stack),
+            'framePointer' => $this->framePointer,
+            'callStack' => $this->getCallStack(),
+            'locals' => $this->getLocalVariables()
         ];
     }
     
-    // Add interrupt info for MESSAGE/INPUT/etc
+    // Add interrupt-specific info
     if ($reason === 'interrupt' && $interrupt) {
         $result['action'] = $interrupt->action;
         $result['actionData'] = $interrupt->actionData;
         $result['expectsReturn'] = $interrupt->expectsReturn;
+        $result['targetVar'] = $interrupt->targetVar;
     }
     
     return new Result(...$result);
 }
 ```
+
+**Debug Info Fields:**
+- `pc`: Program counter (current instruction address)
+- `instruction`: Current instruction object
+- `line`: Source code line number (from source map)
+- `stack`: Full stack contents
+- `stackPointer`: Current stack size (top of stack)
+- `framePointer`: Current frame pointer (for local variables)
+- `callStack`: Function call stack with return addresses
+- `locals`: Local variables in current frame
 
 **Priority Order:**
 
@@ -266,7 +295,49 @@ private function createPausedResult(
 3. Step (after execution) - LOWEST
 ```
 
-Interrupt naturally takes priority over step because exception bypasses step check.
+**Why This Works:**
+- Breakpoint checked BEFORE execution → stops before MESSAGE
+- Interrupt caught INSIDE loop → can add debugInfo
+- Step checked AFTER execution → only if no interrupt occurred
+
+**Example Flow:**
+
+```javascript
+// Script with breakpoint on line 2
+x = 10              // Line 1
+MESSAGE "Test"      // Line 2 - BREAKPOINT HERE
+y = 20              // Line 3
+```
+
+```php
+// Step 1: Execute with step_into
+$result = $vm->execute($bytecode, $globals, stepMode: 'step_into');
+// → paused('step') at line 1, x = 10
+
+// Step 2: Resume with step_into
+$result = $vm->execute($bytecode, $globals, 
+    state: $result['state'], 
+    stepMode: 'step_into'
+);
+// → paused('breakpoint') at line 2, BEFORE MESSAGE executes
+
+// Step 3: Resume with step_into (executes MESSAGE)
+$result = $vm->execute($bytecode, $globals, 
+    state: $result['state'], 
+    stepMode: 'step_into'
+);
+// → paused('interrupt', action='message') at line 2
+//    WITH debugInfo (pc, line, stack, framePointer, etc.)
+
+// Step 4: Resume after handling message
+$result = $vm->execute($bytecode, $globals, 
+    state: $result['state'], 
+    stepMode: 'step_into'
+);
+// → paused('step') at line 3, y = 20
+```
+
+**Key Benefit**: You can debug through interrupts! The debugInfo is always present in debug mode, even for script interrupts.
 
 ---
 
